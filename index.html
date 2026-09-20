@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Quiz Kingdom - 100 Categories Edition</title>
+  <title>Super Quiz Kingdom - 10 Stages Edition</title>
   <!-- Google Fonts & Font Awesome Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -58,20 +58,21 @@
       border: 1px solid rgba(255,255,255,0.08);
     }
 
-   .logo {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #ffffff; /* 기본 텍스트 색상을 선명한 흰색으로 설정 */
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
+    /* 오류 방지 수정된 안전한 로고 스타일 */
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
 
-.logo i {
-  color: #a855f7; /* 왕관 아이콘에 네온 퍼플 포인트 */
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); /* 아이콘 빛남 효과 */
-}
+    .logo i {
+      color: #a855f7;
+      filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+    }
 
     .user-stats {
       display: flex;
@@ -207,8 +208,6 @@
       cursor: pointer;
       border: 1px solid rgba(255,255,255,0.05);
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
     }
 
     .cat-card:hover {
@@ -242,7 +241,7 @@
       gap: 8px;
     }
 
-    /* Stage Selection View */
+    /* Stage Selection View (Updated for 10 stages) */
     .stage-header {
       display: flex;
       align-items: center;
@@ -252,36 +251,43 @@
 
     .stage-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
     }
 
     .stage-card {
       background: var(--bg-card);
       border-radius: var(--radius);
-      padding: 24px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       border: 1px solid rgba(255,255,255,0.1);
-      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .stage-card:hover:not(.locked) {
+      transform: scale(1.03);
+      border-color: var(--primary);
     }
 
     .stage-card.locked {
-      opacity: 0.5;
+      opacity: 0.4;
+      cursor: not-allowed;
       filter: grayscale(0.8);
     }
 
     .stage-number {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 900;
       color: var(--primary);
     }
 
     .stage-stars {
       color: #f59e0b;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       display: flex;
       gap: 4px;
     }
@@ -349,9 +355,6 @@
       text-align: left;
       cursor: pointer;
       transition: all 0.2s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     .option-btn:hover {
@@ -441,8 +444,8 @@
     <!-- 1. Category View -->
     <div id="category-view" class="view active">
       <div class="controls-bar">
-        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색 (예: 초1, 유튜버, 철도)..." oninput="filterCategories()">
-        <button class="filter-btn active" onclick="setFilter('all', this)">전체 (100)</button>
+        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색..." oninput="filterCategories()">
+        <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
         <button class="filter-btn" onclick="setFilter('school', this)">학교/교과</button>
         <button class="filter-btn" onclick="setFilter('trend', this)">트렌드/문화</button>
         <button class="filter-btn" onclick="setFilter('hobby', this)">취미/전문</button>
@@ -453,14 +456,14 @@
       </div>
     </div>
 
-    <!-- 2. Stage Select View -->
+    <!-- 2. Stage Select View (10 Stages) -->
     <div id="stage-view" class="view">
       <div class="stage-header">
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 뒤로가기</button>
         <h2 id="stage-cat-title">카테고리 이름</h2>
       </div>
       <div class="stage-grid" id="stage-grid">
-        <!-- Dynamically rendered stages -->
+        <!-- Dynamically rendered 10 stages -->
       </div>
     </div>
 
@@ -475,7 +478,7 @@
         <div class="quiz-question" id="quiz-question">퀴즈 질문이 들어갑니다.</div>
 
         <div class="options-grid" id="options-grid">
-          <!-- Dynamically rendered options -->
+          <!-- Options -->
         </div>
 
         <div class="game-items-bar">
@@ -539,7 +542,7 @@
 
   <script>
     /* ===================================================
-       1. GAME DATA & STATE MANAGEMENT
+       GAME STATE MANAGEMENT
     =================================================== */
     let gameState = {
       points: 100,
@@ -550,7 +553,6 @@
       stageProgress: {}
     };
 
-    // Load LocalStorage
     if (localStorage.getItem('quiz_kingdom_state')) {
       try {
         gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
@@ -562,7 +564,7 @@
       updateHeaderUI();
     }
 
-    // Audio SFX Generator (Web Audio API)
+    // Audio SFX Generator
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -572,8 +574,8 @@
       gain.connect(audioCtx.destination);
 
       if (type === 'correct') {
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
@@ -591,7 +593,6 @@
     const categories = [];
     const subjects = ["수학", "국어", "영어"];
     
-    // Academic (Grade 1 to 12)
     const grades = ["초등 1학년", "초등 2학년", "초등 3학년", "초등 4학년", "초등 5학년", "초등 6학년", "중학교 1학년", "중학교 2학년", "중학교 3학년", "고등학교 1학년", "고등학교 2학년", "고등학교 3학년"];
     grades.forEach((g, idx) => {
       subjects.forEach(sub => {
@@ -605,7 +606,6 @@
       });
     });
 
-    // Pop & Trend
     const trends = [
       { name: "유튜버 / 크리에이터", icon: "fa-youtube" }, { name: "정치인 & 역사 리더", icon: "fa-landmark" },
       { name: "철도 & 지하철", icon: "fa-train-subway" }, { name: "아이돌 / K-POP", icon: "fa-music" },
@@ -614,49 +614,44 @@
     ];
     trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "일반" }));
 
-    // General & Hobbies (Fill up to 100 categories)
     const hobbies = [
       "세계 수도", "세계 역사", "음식 & 맛집", "스포츠 & 축구", "동물 & 자연", "과학 & 우주", "자동차 & 탈것",
       "속담 & 사자성어", "IT & 코딩", "클래식 음악", "미술 & 명화", "경제 & 주식", "보드게임", "패션 & 브랜드",
-      "군사 & 무기", "환경 & 생태", "미스터리 & 신화", "건강 & 의학", "법률 상식", "한국사", "건축 & 유산",
-      "추억의 가요", "세계 요리", "천문학", "기초 철학", "물리학", "화학", "생명과학", "지구과학", "심리학",
-      "마케팅", "사진 & 카메라", "캠핑 & 등산", "커피 & 음료", "세계 문화", "공룡", "바다 생물", "인공지능", "로봇"
+      "군사 & 무기", "환경 & 생태", "미스터리 & 신화", "건강 & 의학", "법률 상식", "한국사"
     ];
     hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식" }));
 
-    /* Demo Quiz Generator Logic */
+    /* Stage Question Generator (1~10 Stages) */
     function generateStageQuestions(cat, stageNum) {
       const qs = [];
       for (let i = 1; i <= 5; i++) {
-        let questionText = `${cat.title} (Stage ${stageNum}) ${i}번 문제입니다.`;
+        let questionText = `${cat.title} (Stage ${stageNum}) ${i}번 문제`;
         let options = ["정답 옵션", "오답 A", "오답 B", "오답 C"];
         
         if (cat.subject === "수학") {
-          const a = stageNum * 7 + i;
-          const b = stageNum * 3 + i;
-          questionText = `다음 연산의 값은? : ${a} + ${b} = ?`;
-          options = [`${a + b}`, `${a + b + 2}`, `${a + b - 3}`, `${a * b}`];
+          const a = stageNum * 8 + i * 2;
+          const b = stageNum * 4 + i;
+          questionText = `다음 계산의 값은? : ${a} + ${b} = ?`;
+          options = [`${a + b}`, `${a + b + 3}`, `${a + b - 2}`, `${a * b}`];
         } else if (cat.subject === "국어") {
-          questionText = `다음 중 올바른 맞춤법은 무엇일까요? (${stageNum}단계)`;
-          options = ["되어라", "되어라", "되라", "돼라"];
+          questionText = `Stage ${stageNum} - 다음 중 올바른 표기법은?`;
+          options = ["무난하다", "문안하다", "무난하타", "문안하타"];
         } else if (cat.subject === "영어") {
-          questionText = `다음 중 '사과'를 의미하는 영단어는?`;
-          options = ["Apple", "Banana", "Cat", "Dog"];
+          questionText = `Stage ${stageNum} - 다음 영어 단어의 뜻으로 올바른 것은?`;
+          options = ["정답 뜻", "틀린 뜻 A", "틀린 뜻 B", "틀린 뜻 C"];
         }
 
         qs.push({
           question: questionText,
           options: options.sort(() => Math.random() - 0.5),
           answer: options[0],
-          hint: "첫 번째 선택지가 올바른 정답의 가이드입니다."
+          hint: "첫 번째 보기 항목을 잘 살펴 보세요!"
         });
       }
       return qs;
     }
 
-    /* ===================================================
-       2. UI & VIEW CONTROLLER
-    =================================================== */
+    /* UI CONTROLLER */
     let currentFilter = 'all';
     let currentCat = null;
     let currentStage = 1;
@@ -711,7 +706,7 @@
         card.innerHTML = `
           <div class="cat-icon"><i class="fa-solid ${c.icon}"></i></div>
           <div class="cat-title">${c.title}</div>
-          <div class="cat-meta"><span>Stage 1~4</span></div>
+          <div class="cat-meta"><span>Stage 1~10</span></div>
         `;
         grid.appendChild(card);
       });
@@ -724,11 +719,12 @@
       showView('stage-view');
     }
 
+    /* Render 10 Stages */
     function renderStages() {
       const grid = document.getElementById('stage-grid');
       grid.innerHTML = '';
 
-      for (let s = 1; s <= 4; s++) {
+      for (let s = 1; s <= 10; s++) {
         const key = `${currentCat.id}_s${s}`;
         const unlocked = s === 1 || (gameState.stageProgress[`${currentCat.id}_s${s-1}`]?.stars > 0);
         const stars = gameState.stageProgress[key]?.stars || 0;
@@ -742,15 +738,13 @@
             ${'<i class="fa-solid fa-star"></i>'.repeat(stars)}
             ${'<i class="fa-regular fa-star"></i>'.repeat(3 - stars)}
           </div>
-          <div>${unlocked ? '도전 가능' : '<i class="fa-solid fa-lock"></i> 잠김'}</div>
+          <div style="font-size:0.85rem;">${unlocked ? '도전 가능' : '<i class="fa-solid fa-lock"></i> 잠김'}</div>
         `;
         grid.appendChild(card);
       }
     }
 
-    /* ===================================================
-       3. GAMEPLAY ENGINE
-    =================================================== */
+    /* GAMEPLAY ENGINE */
     function startStage(stageNum) {
       currentStage = stageNum;
       currentQuestions = generateStageQuestions(currentCat, stageNum);
@@ -830,12 +824,12 @@
 
     function useItem(type) {
       if (gameState.inventory[type] <= 0) {
-        alert("아이템이 부족합니다! 상점에서 구매하세요.");
+        alert("아이템이 부족합니다!");
         return;
       }
       gameState.inventory[type]--;
       if (type === 'time') {
-        startTimer(); // Reset timer
+        startTimer();
       } else if (type === 'hint') {
         alert("힌트: " + currentQuestions[currentQIdx].hint);
       } else if (type === 'double') {
@@ -871,9 +865,7 @@
       showView('result-view');
     }
 
-    /* ===================================================
-       4. SHOP & TITLES SYSTEM
-    =================================================== */
+    /* SHOP & TITLES SYSTEM */
     function buyItem(type, price) {
       if (gameState.points < price) {
         alert("포인트가 부족합니다!");
@@ -886,7 +878,7 @@
     }
 
     const availableTitles = [
-      "초보 퀴즈러", "지식 탐험가", "스피드 마스터", "퀴즈 왕국의 지배자", "퀴즈 재벌"
+      "초보 퀴즈러", "지식 탐험가", "스피드 마스터", "스테이지 정복자", "퀴즈 왕국의 지배자", "퀴즈 재벌"
     ];
 
     function renderTitles() {
