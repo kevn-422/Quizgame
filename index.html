@@ -631,4 +631,637 @@
     updateUI();
   </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>퀴즈 왕국 (Quiz Kingdom)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #f0f2f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #app {
+      background: white;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 상단 헤더 & 스탯 바 */
+    header {
+      background: #4A90E2;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      width: fit-content;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    /* 메인 컨텐츠 영역 */
+    main {
+      padding: 20px;
+      min-height: 400px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* 버튼 공통 스타일 */
+    .btn {
+      background: #4A90E2;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .btn:hover {
+      background: #357ABD;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    /* 카테고리 선택 화면 */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .category-card {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      padding: 25px 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .category-card:hover {
+      border-color: #4A90E2;
+      transform: translateY(-3px);
+    }
+
+    .category-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    /* 스테이지 선택 화면 */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .stage-card {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .stage-card:hover {
+      border-color: #4A90E2;
+    }
+
+    .stage-stars {
+      color: #ffc107;
+    }
+
+    /* 퀴즈 화면 */
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .timer {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #e74c3c;
+    }
+
+    .question-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .options-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .option-btn {
+      background: white;
+      border: 2px solid #e9ecef;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .option-btn:hover {
+      border-color: #4A90E2;
+      background: #f4f8ff;
+    }
+
+    /* 아이템 영역 */
+    .items-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .item-btn {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    /* 하단 네비게이션 */
+    nav {
+      display: flex;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      background: none;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      color: #4A90E2;
+      border-top: 3px solid #4A90E2;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <!-- 상단 헤더 -->
+    <header>
+      <div class="user-info">
+        <span class="title-badge" id="user-title">초보 퀴즈러</span>
+        <h2 style="font-size: 1.2rem;">퀴즈 왕국</h2>
+      </div>
+      <div class="stats">
+        <span>⭐ <span id="user-stars">0</span></span>
+        <span>🪙 <span id="user-points">100</span>P</span>
+      </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main>
+      <!-- 1. 카테고리 선택 화면 -->
+      <div id="view-categories" class="view active">
+        <h3>카테고리 선택</h3>
+        <div class="category-grid">
+          <div class="category-card" onclick="selectCategory('korean')">
+            <div class="category-icon">🇰🇷</div>
+            <h4>국어</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('math')">
+            <div class="category-icon">🔢</div>
+            <h4>수학</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('society')">
+            <div class="category-icon">🏛️</div>
+            <h4>사회</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('science')">
+            <div class="category-icon">🔬</div>
+            <h4>과학</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 스테이지 선택 화면 (1~10단계) -->
+      <div id="view-stages" class="view">
+        <button class="btn btn-secondary" onclick="showView('view-categories')" style="width: auto; padding: 6px 12px; margin-bottom: 15px;">← 카테고리 선택으로</button>
+        <h3 id="selected-category-title">카테고리명</h3>
+        <div class="stage-grid" id="stage-list">
+          <!-- JS로 Stage 1 ~ Stage 10 동적 생성 -->
+        </div>
+      </div>
+
+      <!-- 3. 퀴즈 진행 화면 -->
+      <div id="view-quiz" class="view">
+        <div class="quiz-header">
+          <span id="quiz-progress" style="font-weight: bold;">문제 1 / 5</span>
+          <span class="timer">⏱️ <span id="time-left">15</span>초</span>
+        </div>
+
+        <div class="question-box" id="question-text">
+          문제가 여기에 표시됩니다.
+        </div>
+
+        <div class="options-grid" id="options-container">
+          <!-- 보기 버튼 동적 생성 -->
+        </div>
+
+        <div class="items-bar">
+          <button class="item-btn" onclick="useItem('time')">⏳ 시간연장 (<span id="item-time-count">2</span>)</button>
+          <button class="item-btn" onclick="useItem('hint')">💡 힌트 (<span id="item-hint-count">2</span>)</button>
+          <button class="item-btn" onclick="useItem('double')">2️⃣ 2배점수 (<span id="item-double-count">1</span>)</button>
+        </div>
+      </div>
+
+      <!-- 4. 결과 화면 -->
+      <div id="view-result" class="view" style="text-align: center; padding: 20px 0;">
+        <h2 id="result-title" style="margin-bottom: 10px;">스테이지 클리어!</h2>
+        <div style="font-size: 3rem; margin: 15px 0;" id="result-stars">⭐⭐⭐</div>
+        <p style="font-size: 1.1rem; margin-bottom: 20px;">획득 포인트: +<span id="result-points">0</span>P</p>
+        <button class="btn" onclick="showView('view-stages')">스테이지 목록으로</button>
+      </div>
+
+      <!-- 5. 상점 화면 -->
+      <div id="view-shop" class="view">
+        <h3>아이템 / 칭호 상점</h3>
+        <div style="margin-top: 15px;">
+          <h4>아이템 구매</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>⏳ 시간 연장 (+10초)</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('time', 30)">30P</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>💡 힌트 (오답 1개 제거)</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('hint', 40)">40P</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>2️⃣ 점수 2배</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('double', 50)">50P</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 하단 네비게이션 -->
+    <nav>
+      <button class="nav-btn active" onclick="navTo('view-categories', this)">퀴즈</button>
+      <button class="nav-btn" onclick="navTo('view-shop', this)">상점</button>
+    </nav>
+  </div>
+
+  <script>
+    // 버전을 높여 이전 로컬 캐시를 강제로 삭제하고 새로 만듭니다.
+    const CURRENT_VERSION = 'v2_10stages';
+
+    // 1. 게임 데이터 상태
+    let gameState = {
+      version: CURRENT_VERSION,
+      points: 100,
+      stars: 0,
+      equippedTitle: "초보 퀴즈러",
+      unlockedTitles: ["초보 퀴즈러"],
+      inventory: { time: 2, hint: 2, double: 1 },
+      stageProgress: {}
+    };
+
+    // 로컬 스토리지 불러오기 및 버전 체크
+    if (localStorage.getItem('quiz_kingdom_state')) {
+      try {
+        const savedState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
+        if (savedState.version === CURRENT_VERSION) {
+          gameState = savedState;
+        } else {
+          localStorage.removeItem('quiz_kingdom_state');
+        }
+      } catch(e) {}
+    }
+
+    function saveState() {
+      localStorage.setItem('quiz_kingdom_state', JSON.stringify(gameState));
+      updateUI();
+    }
+
+    // 2. 퀴즈 문제 데이터 (스테이지 1 ~ 10)
+    const quizData = {
+      korean: {
+        1: [{ q: "'사과'의 바른 표기는?", options: ["사과", "사과아", "삭과", "사과하"], a: 0 }],
+        2: [{ q: "다음 중 명사가 아닌 것은?", options: ["하늘", "달리다", "구름", "나무"], a: 1 }],
+        3: [{ q: "'기쁨'의 반대말은?", options: ["슬픔", "행복", "즐거움", "환희"], a: 0 }],
+        4: [{ q: "'강아지'의 올바른 띄어쓰기는?", options: ["강 아지", "강아지", "강아 지", "가 앙지"], a: 1 }],
+        5: [{ q: "다음 중 표준어는?", options: ["끄트머리", "끄트머리그", "끝머리", "끝머으리"], a: 0 }],
+        6: [{ q: "'배가 부르다'에서 '배'의 의미는?", options: ["신체 부위", "타는 배", "먹는 과일", "배로 늘어나다"], a: 0 }],
+        7: [{ q: "속담: '공든 탑이 ( )랴'", options: ["무너지", "일어서", "높아지", "커지"], a: 0 }],
+        8: [{ q: "다음 중 형용사는?", options: ["예쁘다", "먹다", "달리다", "자다"], a: 0 }],
+        9: [{ q: "높임말 '밥'의 표현은?", options: ["진지", "말씀", "성함", "춘추"], a: 0 }],
+        10: [{ q: "훈민정음을 창제하신 왕은?", options: ["세종대왕", "태조", "정조", "영조"], a: 0 }]
+      },
+      math: {
+        1: [{ q: "1 + 1 = ?", options: ["2", "3", "4", "5"], a: 0 }],
+        2: [{ q: "5 x 3 = ?", options: ["15", "10", "20", "25"], a: 0 }],
+        3: [{ q: "12 / 4 = ?", options: ["3", "4", "2", "6"], a: 0 }],
+        4: [{ q: "20 - 8 = ?", options: ["12", "11", "13", "14"], a: 0 }],
+        5: [{ q: "7 x 7 = ?", options: ["49", "42", "56", "48"], a: 0 }],
+        6: [{ q: "100 / 5 = ?", options: ["20", "25", "15", "10"], a: 0 }],
+        7: [{ q: "15 + 27 = ?", options: ["42", "41", "43", "44"], a: 0 }],
+        8: [{ q: "삼각형의 내각의 합은?", options: ["180도", "360도", "90도", "270도"], a: 0 }],
+        9: [{ q: "9 x 8 = ?", options: ["72", "64", "81", "70"], a: 0 }],
+        10: [{ q: "2의 3제곱(2³)은?", options: ["8", "6", "9", "16"], a: 0 }]
+      },
+      society: {
+        1: [{ q: "대한민국의 수도는?", options: ["서울", "부산", "인천", "대구"], a: 0 }],
+        2: [{ q: "우리나라의 국화(꽃)는?", options: ["무궁화", "장미", "해바라기", "개나리"], a: 0 }],
+        3: [{ q: "조선의 수도 한양의 현재 이름은?", options: ["서울", "개성", "평양", "수원"], a: 0 }],
+        4: [{ q: "독도는 어느 도에 속할까요?", options: ["경상북도", "강원도", "전라남도", "충청북도"], a: 0 }],
+        5: [{ q: "대통령의 임기는 몇 년일까요?", options: ["5년", "4년", "6년", "3년"], a: 0 }],
+        6: [{ q: "우리나라 지폐 중 가장 큰 권종은?", options: ["5만 원", "1만 원", "5천 원", "1천 원"], a: 0 }],
+        7: [{ q: "삼국시대 세 나라가 아닌 곳은?", options: ["고려", "고구려", "백제", "신라"], a: 0 }],
+        8: [{ q: "지구에서 가장 큰 바다는?", options: ["태평양", "대서양", "인도양", "북극해"], a: 0 }],
+        9: [{ q: "우리나라의 국가 상징 노래는?", options: ["애국가", "아리랑", "고향의 봄", "애국가2"], a: 0 }],
+        10: [{ q: "법을 만드는 국가 기관은?", options: ["국회", "법원", "행정부", "경찰청"], a: 0 }]
+      },
+      science: {
+        1: [{ q: "식물이 빛을 받아 영양분을 만드는 작용은?", options: ["광합성", "호흡", "증산작용", "소화"], a: 0 }],
+        2: [{ q: "물의 화학 기호는?", options: ["H2O", "CO2", "O2", "N2"], a: 0 }],
+        3: [{ q: "태양계에서 가장 큰 행성은?", options: ["목성", "토성", "지구", "화성"], a: 0 }],
+        4: [{ q: "사람의 뼈 개수는 약 몇 개일까요?", options: ["206개", "100개", "300개", "500개"], a: 0 }],
+        5: [{ q: "지구의 자전 주기는?", options: ["하루(24시간)", "1년", "한 달", "12시간"], a: 0 }],
+        6: [{ q: "공기 중 가장 많은 비율을 차지하는 기체는?", options: ["질소", "산소", "이산화탄소", "수소"], a: 0 }],
+        7: [{ q: "빛이 꺾이는 현상은?", options: ["굴절", "반사", "분산", "직진"], a: 0 }],
+        8: [{ q: "자석에서 서로 끌어당기는 극은?", options: ["다른 극(N-S)", "같은 극(N-N)", "S-S극", "없음"], a: 0 }],
+        9: [{ q: "지구에서 중력이 가장 강하게 작용하는 곳은?", options: ["극지방", "적도", "상공 100km", "동일함"], a: 0 }],
+        10: [{ q: "소리의 전달 속도가 가장 빠른 상태는?", options: ["고체", "액체", "기체", "진공"], a: 0 }]
+      }
+    };
+
+    // 3. 네비게이션 & UI 상태 관리
+    let currentCategory = 'korean';
+    let currentStage = 1;
+    let currentQuizIndex = 0;
+    let currentScore = 0;
+    let timer = null;
+    let timeLeft = 15;
+    let isDoublePoint = false;
+
+    function updateUI() {
+      document.getElementById('user-stars').innerText = gameState.stars;
+      document.getElementById('user-points').innerText = gameState.points;
+      document.getElementById('user-title').innerText = gameState.equippedTitle;
+
+      document.getElementById('item-time-count').innerText = gameState.inventory.time;
+      document.getElementById('item-hint-count').innerText = gameState.inventory.hint;
+      document.getElementById('item-double-count').innerText = gameState.inventory.double;
+    }
+
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    function navTo(viewId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showView(viewId);
+    }
+
+    // 4. 스테이지 선택 함수 (Stage 1 ~ Stage 10)
+    function selectCategory(catKey) {
+      currentCategory = catKey;
+      const catNames = { korean: '국어', math: '수학', society: '사회', science: '과학' };
+      document.getElementById('selected-category-title').innerText = `${catNames[catKey]} 스테이지`;
+
+      const stageList = document.getElementById('stage-list');
+      stageList.innerHTML = '';
+
+      for (let i = 1; i <= 10; i++) {
+        const starCount = gameState.stageProgress[`${catKey}_${i}`] || 0;
+        const starsText = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
+
+        const card = document.createElement('div');
+        card.className = 'stage-card';
+        card.onclick = () => startQuiz(i);
+        card.innerHTML = `
+          <span>Stage ${i}</span>
+          <span class="stage-stars">${starsText}</span>
+        `;
+        stageList.appendChild(card);
+      }
+
+      showView('view-stages');
+    }
+
+    // 5. 퀴즈 게임 로직
+    function startQuiz(stageNum) {
+      currentStage = stageNum;
+      currentQuizIndex = 0;
+      currentScore = 0;
+      isDoublePoint = false;
+      showView('view-quiz');
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = 15;
+      document.getElementById('time-left').innerText = timeLeft;
+
+      const questions = quizData[currentCategory][currentStage];
+      const q = questions[currentQuizIndex];
+
+      document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / ${questions.length}`;
+      document.getElementById('question-text').innerText = q.q;
+
+      const optionsBox = document.getElementById('options-container');
+      optionsBox.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = `${idx + 1}. ${opt}`;
+        btn.onclick = () => checkAnswer(idx);
+        optionsBox.appendChild(btn);
+      });
+
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('time-left').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer(-1); // 시간 초과
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(selectedIdx) {
+      clearInterval(timer);
+      const q = quizData[currentCategory][currentStage][currentQuizIndex];
+
+      if (selectedIdx === q.a) {
+        let earned = 20;
+        if (isDoublePoint) earned *= 2;
+        currentScore += earned;
+      }
+
+      currentQuizIndex++;
+      const questions = quizData[currentCategory][currentStage];
+
+      if (currentQuizIndex < questions.length) {
+        loadQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function finishQuiz() {
+      showView('view-result');
+      let stars = 1;
+      if (currentScore >= 20) stars = 3;
+
+      document.getElementById('result-stars').innerText = '⭐'.repeat(stars);
+      document.getElementById('result-points').innerText = currentScore;
+
+      // 점수 & 별 저장
+      gameState.points += currentScore;
+      const stageKey = `${currentCategory}_${currentStage}`;
+      if (!gameState.stageProgress[stageKey] || gameState.stageProgress[stageKey] < stars) {
+        gameState.stageProgress[stageKey] = stars;
+      }
+
+      // 별 총합 계산
+      let totalStars = 0;
+      Object.values(gameState.stageProgress).forEach(s => totalStars += s);
+      gameState.stars = totalStars;
+
+      saveState();
+    }
+
+    // 6. 아이템 사용
+    function useItem(type) {
+      if (gameState.inventory[type] <= 0) {
+        alert("아이템이 부족합니다!");
+        return;
+      }
+
+      if (type === 'time') {
+        timeLeft += 10;
+        document.getElementById('time-left').innerText = timeLeft;
+      } else if (type === 'hint') {
+        const q = quizData[currentCategory][currentStage][currentQuizIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+        for (let i = 0; i < buttons.length; i++) {
+          if (i !== q.a) {
+            buttons[i].style.visibility = 'hidden';
+            break;
+          }
+        }
+      } else if (type === 'double') {
+        isDoublePoint = true;
+        alert("다음 문제 점수가 2배로 부여됩니다!");
+      }
+
+      gameState.inventory[type]--;
+      saveState();
+    }
+
+    // 7. 상점 기능
+    function buyItem(type, cost) {
+      if (gameState.points < cost) {
+        alert("포인트가 부족합니다!");
+        return;
+      }
+      gameState.points -= cost;
+      gameState.inventory[type]++;
+      saveState();
+      alert("구매가 완료되었습니다!");
+    }
+
+    // 초기 실행
+    updateUI();
+  </script>
+</body>
 </html>
