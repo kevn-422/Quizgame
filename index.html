@@ -3,548 +3,372 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Quiz Kingdom - 10 Stages Edition</title>
-  <!-- Google Fonts & Font Awesome Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
+  <title>퀴즈 왕국 (Quiz Kingdom)</title>
   <style>
-    :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --secondary: #ec4899;
-      --accent: #f59e0b;
-      --bg-dark: #0f172a;
-      --bg-card: #1e293b;
-      --bg-light: #334155;
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --success: #10b981;
-      --danger: #ef4444;
-      --radius: 16px;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      user-select: none;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      min-height: 100vh;
+      background-color: #f0f2f5;
+      color: #333;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 16px;
+      min-height: 100vh;
+      padding: 20px;
     }
 
-    /* Top Navigation Bar */
-    .header-bar {
+    #app {
+      background: white;
       width: 100%;
-      max-width: 1100px;
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 16px 24px;
+      max-width: 600px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 상단 헤더 & 스탯 바 */
+    header {
+      background: #4A90E2;
+      color: white;
+      padding: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      margin-bottom: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* 오류 방지 수정된 안전한 로고 스타일 */
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: #ffffff;
+    .user-info {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .logo i {
-      color: #a855f7;
-      filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+    .title-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      width: fit-content;
     }
 
-    .user-stats {
+    .stats {
       display: flex;
-      gap: 16px;
-      align-items: center;
-      font-weight: 700;
+      gap: 15px;
+      font-weight: bold;
       font-size: 0.95rem;
     }
 
-    .stat-badge {
-      background: var(--bg-light);
-      padding: 8px 14px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .stat-badge.points { color: #facc15; }
-    .stat-badge.stars { color: #f59e0b; }
-    .stat-badge.title { color: #38bdf8; }
-
-    .nav-btns {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: var(--bg-light);
-      color: var(--text-main);
-    }
-
-    .btn-secondary:hover {
-      background: #475569;
-    }
-
-    /* Main Container Views */
-    .container {
-      width: 100%;
-      max-width: 1100px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    /* 메인 컨텐츠 영역 */
+    main {
+      padding: 20px;
+      min-height: 400px;
     }
 
     .view {
       display: none;
-      width: 100%;
-      animation: fadeIn 0.3s ease-in-out;
     }
 
     .view.active {
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Search & Filter Controls */
-    .controls-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .search-input {
-      flex: 1;
-      min-width: 250px;
-      background: var(--bg-card);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 12px 18px;
-      border-radius: 12px;
+    /* 버튼 공통 스타일 */
+    .btn {
+      background: #4A90E2;
       color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
       font-size: 1rem;
-      outline: none;
-    }
-
-    .filter-btn {
-      padding: 10px 16px;
-      background: var(--bg-card);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-sub);
-      border-radius: 12px;
+      font-weight: bold;
       cursor: pointer;
-      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+      margin-bottom: 10px;
     }
 
-    .filter-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
+    .btn:hover {
+      background: #357ABD;
     }
 
-    /* Grid Layout for Categories */
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    /* 카테고리 선택 화면 */
     .category-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
     }
 
-    .cat-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .category-card {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      padding: 25px 15px;
       text-align: center;
-      gap: 12px;
       cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.05);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s;
     }
 
-    .cat-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--primary);
-      box-shadow: 0 12px 20px rgba(99, 102, 241, 0.2);
+    .category-card:hover {
+      border-color: #4A90E2;
+      transform: translateY(-3px);
     }
 
-    .cat-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: var(--bg-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      color: #38bdf8;
+    .category-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
     }
 
-    .cat-title {
-      font-weight: 800;
-      font-size: 1.1rem;
-      line-height: 1.3;
-    }
-
-    .cat-meta {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      display: flex;
-      gap: 8px;
-    }
-
-    /* Stage Selection View (Updated for 10 stages) */
-    .stage-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
+    /* 스테이지 선택 화면 */
     .stage-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
     }
 
     .stage-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 20px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 15px;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
       cursor: pointer;
-      transition: transform 0.2s;
     }
 
-    .stage-card:hover:not(.locked) {
-      transform: scale(1.03);
-      border-color: var(--primary);
-    }
-
-    .stage-card.locked {
-      opacity: 0.4;
-      cursor: not-allowed;
-      filter: grayscale(0.8);
-    }
-
-    .stage-number {
-      font-size: 1.3rem;
-      font-weight: 900;
-      color: var(--primary);
+    .stage-card:hover {
+      border-color: #4A90E2;
     }
 
     .stage-stars {
-      color: #f59e0b;
-      font-size: 1.1rem;
+      color: #ffc107;
+    }
+
+    /* 퀴즈 화면 */
+    .quiz-header {
       display: flex;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
 
-    /* Gameplay Screen */
-    .quiz-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 32px;
-      max-width: 700px;
-      margin: 0 auto;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      position: relative;
+    .timer {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #e74c3c;
     }
 
-    .quiz-progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--bg-light);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-
-    .quiz-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      width: 100%;
-      transition: width 0.1s linear;
-    }
-
-    .subject-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 800;
-      margin-bottom: 12px;
-      background: #0284c7;
-      color: white;
-    }
-
-    .quiz-question {
-      font-size: 1.35rem;
-      font-weight: 800;
-      margin-bottom: 24px;
-      line-height: 1.4;
+    .question-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
     .options-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .option-btn {
-      background: var(--bg-light);
-      border: 2px solid transparent;
-      padding: 16px 20px;
-      border-radius: 12px;
-      color: white;
-      font-size: 1rem;
-      font-weight: 700;
+      background: white;
+      border: 2px solid #e9ecef;
+      padding: 15px;
+      border-radius: 10px;
       text-align: left;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .option-btn:hover {
-      border-color: var(--primary);
-      background: #3e4c5e;
+      border-color: #4A90E2;
+      background: #f4f8ff;
     }
 
-    .option-btn.correct {
-      background: #065f46 !important;
-      border-color: var(--success) !important;
-    }
-
-    .option-btn.wrong {
-      background: #991b1b !important;
-      border-color: var(--danger) !important;
-    }
-
-    .game-items-bar {
+    /* 아이템 영역 */
+    .items-bar {
       display: flex;
       gap: 10px;
-      margin-top: 20px;
-      justify-content: center;
+      margin-top: 15px;
     }
 
-    .item-use-btn {
-      background: var(--bg-light);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white;
-      padding: 8px 14px;
-      border-radius: 10px;
+    .item-btn {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 8px;
+      border-radius: 8px;
       font-size: 0.85rem;
-      font-weight: 700;
       cursor: pointer;
+    }
+
+    /* 하단 네비게이션 */
+    nav {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      border-top: 1px solid #eee;
+      background: #fafafa;
     }
 
-    /* Modal / Shop / Titles */
-    .shop-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+    .nav-btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      background: none;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
     }
 
-    .shop-item {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .shake {
-      animation: shake 0.4s ease-in-out;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-8px); }
-      40%, 80% { transform: translateX(8px); }
+    .nav-btn.active {
+      color: #4A90E2;
+      border-top: 3px solid #4A90E2;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header Navigation -->
-  <div class="header-bar">
-    <div class="logo" onclick="showView('category-view')">
-      <i class="fa-solid fa-crown"></i> SUPER QUIZ KINGDOM
-    </div>
-    <div class="user-stats">
-      <div class="stat-badge title" id="equipped-title"><i class="fa-solid fa-award"></i> 초보 퀴즈러</div>
-      <div class="stat-badge stars"><i class="fa-solid fa-star"></i> <span id="total-stars">0</span></div>
-      <div class="stat-badge points"><i class="fa-solid fa-coins"></i> <span id="user-points">0</span>P</div>
-    </div>
-    <div class="nav-btns">
-      <button class="btn btn-secondary" onclick="showView('shop-view')"><i class="fa-solid fa-cart-shopping"></i> 상점</button>
-      <button class="btn btn-secondary" onclick="showView('title-view')"><i class="fa-solid fa-trophy"></i> 칭호</button>
-    </div>
-  </div>
-
-  <div class="container">
-    
-    <!-- 1. Category View -->
-    <div id="category-view" class="view active">
-      <div class="controls-bar">
-        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색..." oninput="filterCategories()">
-        <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
-        <button class="filter-btn" onclick="setFilter('school', this)">학교/교과</button>
-        <button class="filter-btn" onclick="setFilter('trend', this)">트렌드/문화</button>
-        <button class="filter-btn" onclick="setFilter('hobby', this)">취미/전문</button>
+  <div id="app">
+    <!-- 상단 헤더 -->
+    <header>
+      <div class="user-info">
+        <span class="title-badge" id="user-title">초보 퀴즈러</span>
+        <h2 style="font-size: 1.2rem;">퀴즈 왕국</h2>
       </div>
-
-      <div class="category-grid" id="category-grid">
-        <!-- Dynamically rendered categories -->
+      <div class="stats">
+        <span>⭐ <span id="user-stars">0</span></span>
+        <span>🪙 <span id="user-points">100</span>P</span>
       </div>
-    </div>
+    </header>
 
-    <!-- 2. Stage Select View (10 Stages) -->
-    <div id="stage-view" class="view">
-      <div class="stage-header">
-        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 뒤로가기</button>
-        <h2 id="stage-cat-title">카테고리 이름</h2>
-      </div>
-      <div class="stage-grid" id="stage-grid">
-        <!-- Dynamically rendered 10 stages -->
-      </div>
-    </div>
-
-    <!-- 3. Gameplay View -->
-    <div id="quiz-view" class="view">
-      <div class="quiz-card" id="quiz-card">
-        <div class="quiz-progress-bar">
-          <div class="quiz-progress-fill" id="timer-bar"></div>
-        </div>
-        <span class="subject-badge" id="subject-badge">과목</span>
-        <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px;" id="quiz-num">문제 1/5</div>
-        <div class="quiz-question" id="quiz-question">퀴즈 질문이 들어갑니다.</div>
-
-        <div class="options-grid" id="options-grid">
-          <!-- Options -->
-        </div>
-
-        <div class="game-items-bar">
-          <button class="item-use-btn" onclick="useItem('time')"><i class="fa-solid fa-clock"></i> 시간+10s (<span id="item-time-cnt">0</span>)</button>
-          <button class="item-use-btn" onclick="useItem('hint')"><i class="fa-solid fa-lightbulb"></i> 힌트 (<span id="item-hint-cnt">0</span>)</button>
-          <button class="item-use-btn" onclick="useItem('double')"><i class="fa-solid fa-bolt"></i> 점수2배 (<span id="item-double-cnt">0</span>)</button>
+    <!-- 메인 컨텐츠 -->
+    <main>
+      <!-- 1. 카테고리 선택 화면 -->
+      <div id="view-categories" class="view active">
+        <h3>카테고리 선택</h3>
+        <div class="category-grid">
+          <div class="category-card" onclick="selectCategory('korean')">
+            <div class="category-icon">🇰🇷</div>
+            <h4>국어</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('math')">
+            <div class="category-icon">🔢</div>
+            <h4>수학</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('society')">
+            <div class="category-icon">🏛️</div>
+            <h4>사회</h4>
+          </div>
+          <div class="category-card" onclick="selectCategory('science')">
+            <div class="category-icon">🔬</div>
+            <h4>과학</h4>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 4. Result View -->
-    <div id="result-view" class="view">
-      <div class="quiz-card" style="text-align: center;">
-        <h2 style="font-size: 2rem; margin-bottom: 12px;" id="result-title">STAGE CLEAR!</h2>
-        <div id="result-stars" style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 16px;">
-          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-        </div>
-        <p style="font-size: 1.2rem; margin-bottom: 8px;">획득 점수: <span id="result-score" style="color:#facc15; font-weight:800;">0</span> 점</p>
-        <p style="font-size: 1rem; color: var(--text-sub); margin-bottom: 24px;">정답률: <span id="result-acc">0</span>%</p>
-        <button class="btn" style="margin: 0 auto;" onclick="showView('stage-view')">스테이지 목록으로</button>
-      </div>
-    </div>
-
-    <!-- 5. Shop View -->
-    <div id="shop-view" class="view">
-      <div class="stage-header">
-        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
-        <h2>포인트 아이템 상점</h2>
-      </div>
-      <div class="shop-grid">
-        <div class="shop-item">
-          <h3><i class="fa-solid fa-clock" style="color:#38bdf8;"></i> 시간 연장 (+10초)</h3>
-          <p style="color: var(--text-sub); font-size: 0.9rem;">퀴즈 타이머 제한 시간을 10초 늘려줍니다.</p>
-          <button class="btn" onclick="buyItem('time', 100)">100 P 구매</button>
-        </div>
-        <div class="shop-item">
-          <h3><i class="fa-solid fa-lightbulb" style="color:#facc15;"></i> 힌트 아이템</h3>
-          <p style="color: var(--text-sub); font-size: 0.9rem;">정답에 대한 힌트를 즉시 확인할 수 있습니다.</p>
-          <button class="btn" onclick="buyItem('hint', 150)">150 P 구매</button>
-        </div>
-        <div class="shop-item">
-          <h3><i class="fa-solid fa-bolt" style="color:#ec4899;"></i> 점수 2배 버프</h3>
-          <p style="color: var(--text-sub); font-size: 0.9rem;">해당 문제 정답 시 점수를 2배로 획득합니다.</p>
-          <button class="btn" onclick="buyItem('double', 200)">200 P 구매</button>
+      <!-- 2. 스테이지 선택 화면 (1~10단계) -->
+      <div id="view-stages" class="view">
+        <button class="btn btn-secondary" onclick="showView('view-categories')" style="width: auto; padding: 6px 12px; margin-bottom: 15px;">← 카테고리 선택으로</button>
+        <h3 id="selected-category-title">카테고리명</h3>
+        <div class="stage-grid" id="stage-list">
+          <!-- JS로 Stage 1 ~ Stage 10 동적 생성 -->
         </div>
       </div>
-    </div>
 
-    <!-- 6. Titles View -->
-    <div id="title-view" class="view">
-      <div class="stage-header">
-        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
-        <h2>보유 칭호 보관함</h2>
-      </div>
-      <div class="shop-grid" id="titles-grid">
-        <!-- Dynamically rendered titles -->
-      </div>
-    </div>
+      <!-- 3. 퀴즈 진행 화면 -->
+      <div id="view-quiz" class="view">
+        <div class="quiz-header">
+          <span id="quiz-progress" style="font-weight: bold;">문제 1 / 5</span>
+          <span class="timer">⏱️ <span id="time-left">15</span>초</span>
+        </div>
 
+        <div class="question-box" id="question-text">
+          문제가 여기에 표시됩니다.
+        </div>
+
+        <div class="options-grid" id="options-container">
+          <!-- 보기 버튼 동적 생성 -->
+        </div>
+
+        <div class="items-bar">
+          <button class="item-btn" onclick="useItem('time')">⏳ 시간연장 (<span id="item-time-count">2</span>)</button>
+          <button class="item-btn" onclick="useItem('hint')">💡 힌트 (<span id="item-hint-count">2</span>)</button>
+          <button class="item-btn" onclick="useItem('double')">2️⃣ 2배점수 (<span id="item-double-count">1</span>)</button>
+        </div>
+      </div>
+
+      <!-- 4. 결과 화면 -->
+      <div id="view-result" class="view" style="text-align: center; padding: 20px 0;">
+        <h2 id="result-title" style="margin-bottom: 10px;">스테이지 완료!</h2>
+        <div style="font-size: 3rem; margin: 15px 0;" id="result-stars">⭐⭐⭐</div>
+        <p style="font-size: 1.1rem; margin-bottom: 20px;">획득 포인트: +<span id="result-points">0</span>P</p>
+        <button class="btn" onclick="showView('view-stages')">스테이지 목록으로</button>
+      </div>
+
+      <!-- 5. 상점 화면 -->
+      <div id="view-shop" class="view">
+        <h3>아이템 / 칭호 상점</h3>
+        <div style="margin-top: 15px;">
+          <h4>아이템 구매</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>⏳ 시간 연장 (+10초)</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('time', 30)">30P</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>💡 힌트 (오답 1개 제거)</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('hint', 40)">40P</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <span>2️⃣ 점수 2배</span>
+            <button class="btn" style="width: auto; margin:0;" onclick="buyItem('double', 50)">50P</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 하단 네비게이션 -->
+    <nav>
+      <button class="nav-btn active" onclick="navTo('view-categories', this)">퀴즈</button>
+      <button class="nav-btn" onclick="navTo('view-shop', this)">상점</button>
+    </nav>
   </div>
 
   <script>
-    /* ===================================================
-       GAME STATE MANAGEMENT
-    =================================================== */
+    // 버전을 높여 기존 캐시 데이터를 자동 리셋합니다.
+    const CURRENT_VERSION = 'v3_multi_questions';
+
+    // 1. 게임 데이터 상태
     let gameState = {
+      version: CURRENT_VERSION,
       points: 100,
       stars: 0,
       equippedTitle: "초보 퀴즈러",
@@ -553,364 +377,500 @@
       stageProgress: {}
     };
 
+    // 로컬 스토리지 불러오기 및 버전 체크
     if (localStorage.getItem('quiz_kingdom_state')) {
       try {
-        gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
-      } catch(e){}
+        const savedState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
+        if (savedState.version === CURRENT_VERSION) {
+          gameState = savedState;
+        } else {
+          localStorage.removeItem('quiz_kingdom_state');
+        }
+      } catch(e) {}
     }
 
     function saveState() {
       localStorage.setItem('quiz_kingdom_state', JSON.stringify(gameState));
-      updateHeaderUI();
+      updateUI();
     }
 
-    // Audio SFX Generator
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      if (type === 'correct') {
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'wrong') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(140, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    // 2. 각 스테이지당 5문제씩 구성된 데이터
+    const quizData = {
+      korean: {
+        1: [
+          { q: "'사과'의 바른 표기는?", options: ["사과", "사과아", "삭과", "사과하"], a: 0 },
+          { q: "다음 중 과일이 아닌 것은?", options: ["바나나", "사과", "책상", "포도"], a: 2 },
+          { q: "반갑게 만났을 때 하는 인사말은?", options: ["안녕하세요", "잘가요", "지하철", "고마워"], a: 0 },
+          { q: "'하늘'의 첫 번째 자음(초성)은?", options: ["ㅎ", "ㄱ", "ㄴ", "ㄹ"], a: 0 },
+          { q: "글자를 읽고 쓰는 곳은?", options: ["학교", "바다", "산", "구름"], a: 0 }
+        ],
+        2: [
+          { q: "다음 중 움직임을 나타내는 말(동사)은?", options: ["달리다", "하늘", "구름", "나무"], a: 0 },
+          { q: "'기쁨'의 반대말은?", options: ["슬픔", "행복", "즐거움", "환희"], a: 0 },
+          { q: "'강아지'의 올바른 띄어쓰기는?", options: ["강아지", "강 아지", "강아 지", "가 앙지"], a: 0 },
+          { q: "다음 중 표준어는?", options: ["끄트머리", "끄트머리그", "끝머으리", "끝트머리"], a: 0 },
+          { q: "친구에게 고마울 때 하는 말은?", options: ["고마워", "미안해", "싫어", "글쎄"], a: 0 }
+        ],
+        3: [
+          { q: "'배가 부르다'에서 '배'의 의미는?", options: ["신체 부위", "타는 배", "먹는 과일", "숫자 배"], a: 0 },
+          { q: "속담: '공든 탑이 ( )랴'", options: ["무너지", "일어서", "높아지", "커지"], a: 0 },
+          { q: "다음 중 상태를 나타내는 말(형용사)은?", options: ["예쁘다", "먹다", "달리다", "자다"], a: 0 },
+          { q: "높임말 '밥'의 올바른 표현은?", options: ["진지", "말씀", "성함", "춘추"], a: 0 },
+          { q: "훈민정음을 창제하신 왕은?", options: ["세종대왕", "태조", "정조", "영조"], a: 0 }
+        ],
+        4: [
+          { q: "다음 중 단어의 쓰임이 올바른 것은?", options: ["가방을 메다", "가방을 매다", "가방을 뫼다", "가방을 미다"], a: 0 },
+          { q: "'책'을 세는 단위는?", options: ["권", "개", "마리", "장"], a: 0 },
+          { q: "다음 중 순우리말은?", options: ["나비", "버스", "택시", "노트"], a: 0 },
+          { q: "'지하철'에서 철(鐵)의 의미는?", options: ["쇠", "물", "불", "흙"], a: 0 },
+          { q: "이야기의 맨 처음 부분을 뜻하는 말은?", options: ["발단", "전개", "위기", "결말"], a: 0 }
+        ],
+        5: [
+          { q: "다음 중 받침이 없는 글자는?", options: ["가", "강", "간", "감"], a: 0 },
+          { q: "낮과 밤 중 해가 뜨는 시간은?", options: ["낮", "밤", "새벽 2시", "자정"], a: 0 },
+          { q: "'바다'와 연관이 적은 단어는?", options: ["우주선", "파도", "모래", "물고기"], a: 0 },
+          { q: "글을 쓸 때 문장이 끝나는 표시(.)는?", options: ["마침표", "물음표", "느낌표", "쉼표"], a: 0 },
+          { q: "질문할 때 문장 끝에 붙이는 기호(?)는?", options: ["물음표", "마침표", "느낌표", "따옴표"], a: 0 }
+        ],
+        6: [
+          { q: "다음 중 계절이 아닌 것은?", options: ["하늘", "봄", "여름", "겨울"], a: 0 },
+          { q: "사과의 색깔로 가장 흔한 것은?", options: ["빨간색", "파란색", "보라색", "검은색"], a: 0 },
+          { q: "연필로 글씨를 쓰고 지울 때 쓰는 것은?", options: ["지우개", "자", "풀", "가위"], a: 0 },
+          { q: "종이를 붙일 때 사용하는 도구는?", options: ["풀", "칼", "펜", "지우개"], a: 0 },
+          { q: "책을 읽는 장소로 알맞은 곳은?", options: ["도서관", "수영장", "축구장", "공사장"], a: 0 }
+        ],
+        7: [
+          { q: "'시원하다'의 반대 느낌에 가까운 것은?", options: ["답답하다", "상쾌하다", "맑다", "깨끗하다"], a: 0 },
+          { q: "다음 중 '동물'이 아닌 것은?", options: ["소나무", "호랑이", "사자", "토끼"], a: 0 },
+          { q: "비가 올 때 쓰는 물건은?", options: ["우산", "안경", "모자", "장갑"], a: 0 },
+          { q: "눈이 올 때 만드는 인형은?", options: ["눈사람", "흙사람", "돌사람", "물사람"], a: 0 },
+          { q: "다음 중 '식물'인 것은?", options: ["장미", "강아지", "고양이", "비둘기"], a: 0 }
+        ],
+        8: [
+          { q: "다음 중 맞춤법이 올바른 것은?", options: ["어이없다", "어의없다", "어이업다", "어의업다"], a: 0 },
+          { q: "'아침' 다음 시간대는?", options: ["점심", "저녁", "밤", "새벽"], a: 0 },
+          { q: "신발을 신는 신체 부위는?", options: ["발", "손", "머리", "어깨"], a: 0 },
+          { q: "장갑을 끼는 신체 부위는?", options: ["손", "발", "귀", "목"], a: 0 },
+          { q: "시계를 보면 알 수 있는 것은?", options: ["시간", "몸무게", "키", "날씨"], a: 0 }
+        ],
+        9: [
+          { q: "'약속'을 지키지 않는 것을 뜻하는 말은?", options: ["어기다", "지키다", "맺다", "만들다"], a: 0 },
+          { q: "다음 중 음식이 아닌 것은?", options: ["지우개", "비빔밥", "불고기", "떡볶이"], a: 0 },
+          { q: "생일에 부르는 노래는?", options: ["생일 축하 노래", "애국가", "교가", "캐롤"], a: 0 },
+          { q: "비행기를 운전하는 사람은?", options: ["조종사", "기관사", "운전기사", "선장"], a: 0 },
+          { q: "지하철을 운전하는 사람은?", options: ["기관사", "조종사", "선장", "우주인"], a: 0 }
+        ],
+        10: [
+          { q: "우리나라 글자의 이름은?", options: ["한글", "한자", "영어", "가타카나"], a: 0 },
+          { q: "한글날은 몇 월 몇 일일까요?", options: ["10월 9일", "8월 15일", "3월 1일", "5월 5일"], a: 0 },
+          { q: "훈민정음의 뜻은?", options: ["백성을 가르치는 바른 소리", "바른 글자", "왕의 소리", "세계의 언어"], a: 0 },
+          { q: "글을 쓰는 사람을 부르는 말은?", options: ["작가", "화가", "음악가", "운동선수"], a: 0 },
+          { q: "그림을 그리는 사람을 부르는 말은?", options: ["화가", "작가", "경찰", "요리사"], a: 0 }
+        ]
+      },
+      math: {
+        1: [
+          { q: "1 + 1 = ?", options: ["2", "3", "4", "5"], a: 0 },
+          { q: "2 + 3 = ?", options: ["5", "6", "4", "7"], a: 0 },
+          { q: "5 - 2 = ?", options: ["3", "2", "4", "1"], a: 0 },
+          { q: "4 + 4 = ?", options: ["8", "7", "9", "6"], a: 0 },
+          { q: "10 - 5 = ?", options: ["5", "4", "6", "3"], a: 0 }
+        ],
+        2: [
+          { q: "5 x 3 = ?", options: ["15", "10", "20", "25"], a: 0 },
+          { q: "12 / 4 = ?", options: ["3", "4", "2", "6"], a: 0 },
+          { q: "20 - 8 = ?", options: ["12", "11", "13", "14"], a: 0 },
+          { q: "6 x 2 = ?", options: ["12", "10", "14", "16"], a: 0 },
+          { q: "15 - 7 = ?", options: ["8", "7", "9", "6"], a: 0 }
+        ],
+        3: [
+          { q: "7 x 7 = ?", options: ["49", "42", "56", "48"], a: 0 },
+          { q: "100 / 5 = ?", options: ["20", "25", "15", "10"], a: 0 },
+          { q: "15 + 27 = ?", options: ["42", "41", "43", "44"], a: 0 },
+          { q: "8 x 4 = ?", options: ["32", "30", "36", "28"], a: 0 },
+          { q: "50 - 15 = ?", options: ["35", "30", "40", "25"], a: 0 }
+        ],
+        4: [
+          { q: "삼각형의 내각의 합은?", options: ["180도", "360도", "90도", "270도"], a: 0 },
+          { q: "사각형의 내각의 합은?", options: ["360도", "180도", "270도", "540도"], a: 0 },
+          { q: "9 x 8 = ?", options: ["72", "64", "81", "70"], a: 0 },
+          { q: "2의 3제곱(2³)은?", options: ["8", "6", "9", "16"], a: 0 },
+          { q: "100 - 37 = ?", options: ["63", "67", "53", "73"], a: 0 }
+        ],
+        5: [
+          { q: "10 x 10 = ?", options: ["100", "1000", "10", "50"], a: 0 },
+          { q: "81 / 9 = ?", options: ["9", "8", "7", "6"], a: 0 },
+          { q: "30 + 70 = ?", options: ["100", "90", "110", "120"], a: 0 },
+          { q: "14 / 2 = ?", options: ["7", "6", "8", "5"], a: 0 },
+          { q: "3 x 9 = ?", options: ["27", "24", "21", "30"], a: 0 }
+        ],
+        6: [
+          { q: "직사각형의 변의 개수는?", options: ["4개", "3개", "5개", "6개"], a: 0 },
+          { q: "원에는 모서리가 몇 개 있을까요?", options: ["0개", "1개", "2개", "4개"], a: 0 },
+          { q: "50의 절반(1/2)은?", options: ["25", "20", "30", "15"], a: 0 },
+          { q: "6 x 7 = ?", options: ["42", "36", "48", "40"], a: 0 },
+          { q: "100 / 2 = ?", options: ["50", "40", "60", "20"], a: 0 }
+        ],
+        7: [
+          { q: "13 + 18 = ?", options: ["31", "30", "32", "29"], a: 0 },
+          { q: "40 - 12 = ?", options: ["28", "26", "30", "22"], a: 0 },
+          { q: "4 x 9 = ?", options: ["36", "32", "40", "38"], a: 0 },
+          { q: "64 / 8 = ?", options: ["8", "7", "9", "6"], a: 0 },
+          { q: "15 x 2 = ?", options: ["30", "25", "35", "40"], a: 0 }
+        ],
+        8: [
+          { q: "1000m는 몇 km일까요?", options: ["1km", "10km", "100km", "0.1km"], a: 0 },
+          { q: "1시간은 몇 분일까요?", options: ["60분", "100분", "30분", "24분"], a: 0 },
+          { q: "1분은 몇 초일까요?", options: ["60초", "100초", "30초", "12초"], a: 0 },
+          { q: "하루는 몇 시간일까요?", options: ["24시간", "12시간", "48시간", "60시간"], a: 0 },
+          { q: "7 x 8 = ?", options: ["56", "54", "64", "48"], a: 0 }
+        ],
+        9: [
+          { q: "11 x 11 = ?", options: ["121", "111", "131", "101"], a: 0 },
+          { q: "12 x 12 = ?", options: ["144", "124", "154", "134"], a: 0 },
+          { q: "90 / 3 = ?", options: ["30", "20", "40", "15"], a: 0 },
+          { q: "75 + 25 = ?", options: ["100", "90", "110", "95"], a: 0 },
+          { q: "200 - 80 = ?", options: ["120", "110", "130", "100"], a: 0 }
+        ],
+        10: [
+          { q: "가장 작은 소수(Prime Number)는?", options: ["2", "1", "3", "0"], a: 0 },
+          { q: "3의 3제곱(3³)은?", options: ["27", "9", "18", "81"], a: 0 },
+          { q: "1000 / 10 = ?", options: ["100", "10", "1", "1000"], a: 0 },
+          { q: "50 x 4 = ?", options: ["200", "150", "250", "100"], a: 0 },
+          { q: "100의 10%는?", options: ["10", "1", "20", "50"], a: 0 }
+        ]
+      },
+      society: {
+        1: [
+          { q: "대한민국의 수도는?", options: ["서울", "부산", "인천", "대구"], a: 0 },
+          { q: "우리나라의 국화(꽃)는?", options: ["무궁화", "장미", "해바라기", "개나리"], a: 0 },
+          { q: "우리나라 태극기의 4괘가 아닌 것은?", options: ["목", "건", "곤", "감"], a: 0 },
+          { q: "우리나라 지폐에 그려진 세종대왕의 화폐는?", options: ["1만 원", "1천 원", "5천 원", "5만 원"], a: 0 },
+          { q: "지하철과 버스를 탈 때 사용하는 카드는?", options: ["교통카드", "학생증", "신분증", "명함"], a: 0 }
+        ],
+        2: [
+          { q: "조선의 수도 한양의 현재 이름은?", options: ["서울", "개성", "평양", "수원"], a: 0 },
+          { q: "독도는 어느 도에 속할까요?", options: ["경상북도", "강원도", "전라남도", "충청북도"], a: 0 },
+          { q: "대통령의 임기는 몇 년일까요?", options: ["5년", "4년", "6년", "3년"], a: 0 },
+          { q: "우리나라 지폐 중 가장 큰 권종은?", options: ["5만 원", "1만 원", "5천 원", "1천 원"], a: 0 },
+          { q: "국회에서 하는 주요 일은?", options: ["법 만들기", "재판하기", "범인 잡기", "불 끄기"], a: 0 }
+        ],
+        3: [
+          { q: "삼국시대 세 나라가 아닌 곳은?", options: ["고려", "고구려", "백제", "신라"], a: 0 },
+          { q: "지구에서 가장 큰 바다는?", options: ["태평양", "대서양", "인도양", "북극해"], a: 0 },
+          { q: "우리나라의 국가 상징 노래는?", options: ["애국가", "아리랑", "고향의 봄", "애국가2"], a: 0 },
+          { q: "법을 만드는 국가 기관은?", options: ["국회", "법원", "행정부", "경찰청"], a: 0 },
+          { q: "불이 났을 때 신고하는 번호는?", options: ["119", "112", "114", "110"], a: 0 }
+        ],
+        4: [
+          { q: "범죄나 사고가 났을 때 경찰에 신고하는 번호는?", options: ["112", "119", "114", "110"], a: 0 },
+          { q: "지도에서 파란색으로 표시되는 곳은?", options: ["바다/강", "산", "도로", "건물"], a: 0 },
+          { q: "지도에서 나침반의 N이 가리키는 방위는?", options: ["북쪽", "남쪽", "동쪽", "서쪽"], a: 0 },
+          { q: "해 해가 뜨는 방향은?", options: ["동쪽", "서쪽", "남쪽", "북쪽"], a: 0 },
+          { q: "해가 지는 방향은?", options: ["서쪽", "동쪽", "남쪽", "북쪽"], a: 0 }
+        ],
+        5: [
+          { q: "조선을 건국한 왕은?", options: ["태조 이성계", "세종대왕", "정조", "광개토대왕"], a: 0 },
+          { q: "임진왜란 때 한산도 대첩을 이끈 장군은?", options: ["이순신", "강감찬", "김유신", "계백"], a: 0 },
+          { q: "거북선을 만든 장군은?", options: ["이순신", "을지문덕", "최영", "권율"], a: 0 },
+          { q: "우리나라의 광복절은 몇 월 몇 일일까요?", options: ["8월 15일", "3월 1일", "7월 17일", "10월 3일"], a: 0 },
+          { q: "삼일절은 몇 월 몇 일일까요?", options: ["3월 1일", "8월 15일", "5월 5일", "6월 6일"], a: 0 }
+        ],
+        6: [
+          { q: "세계에서 가장 인구가 많은 나라는?", options: ["인도", "중국", "미국", "브라질"], a: 0 },
+          { q: "우리나라와 경계를 맞대고 있는 인접 국가는?", options: ["북한", "일본", "미국", "호주"], a: 0 },
+          { q: "제주도에 있는 가장 높은 산은?", options: ["한라산", "설악산", "지리산", "백두산"], a: 0 },
+          { q: "한반도에서 가장 높은 산은?", options: ["백두산", "한라산", "금강산", "태백산"], a: 0 },
+          { q: "대한민국의 최고 통치권자는?", options: ["대통령", "국회의원", "시장", "도지사"], a: 0 }
+        ],
+        7: [
+          { q: "물건을 살 때 내는 세금을 비유적으로 이르는 말은?", options: ["소비세", "소득세", "재산세", "자동차세"], a: 0 },
+          { q: "옛날 사람들이 사용하던 돈의 형태가 아닌 것은?", options: ["신용카드", "엽전", "쌀", "비단"], a: 0 },
+          { q: "박물관에서 볼 수 있는 옛날 물건을 무엇이라 할까요?", options: ["유물", "신제품", "쓰레기", "장난감"], a: 0 },
+          { q: "우리나라 전통 옷의 이름은?", options: ["한복", "기모노", "치파오", "양복"], a: 0 },
+          { q: "우리나라 전통 음식 발효 식품은?", options: ["김치", "빵", "피자", "햄버거"], a: 0 }
+        ],
+        8: [
+          { q: "재판이 이루어지는 국가 기관은?", options: ["법원", "국회", "시청", "경찰서"], a: 0 },
+          { q: "시의 살림을 맡아보는 기관은?", options: ["시청", "소방서", "우체국", "도서관"], a: 0 },
+          { q: "편지나 택배를 보낼 때 이용하는 곳은?", options: ["우체국", "은행", "법원", "경찰서"], a: 0 },
+          { q: "돈을 저금하고 대출받는 곳은?", options: ["은행", "우체국", "학교", "병원"], a: 0 },
+          { q: "아플 때 치료를 받으러 가는 곳은?", options: ["병원", "약국", "은행", "학교"], a: 0 }
+        ],
+        9: [
+          { q: "유네스코 세계문화유산인 서울의 궁궐은?", options: ["창덕궁", "덕수궁", "경희궁", "운현궁"], a: 0 },
+          { q: "조선시대 왕들의 위패를 모신 사당은?", options: ["종묘", "사직단", "선농단", "첨성대"], a: 0 },
+          { q: "신라 시대 별을 관측하던 첨성대가 있는 도시는?", options: ["경주", "공주", "부여", "전주"], a: 0 },
+          { q: "백제의 옛 수도가 있었던 도시는?", options: ["공주/부여", "경주", "춘천", "강릉"], a: 0 },
+          { q: "고구려의 유명한 광개토대왕비가 있는 위치는?", options: ["만주(중국)", "서울", "경주", "제주도"], a: 0 }
+        ],
+        10: [
+          { q: "세계 인권 선언이 발표된 국제 기구는?", options: ["UN", "WHO", "UNESCO", "WTO"], a: 0 },
+          { q: "지구촌 환경 보호를 위한 날은?", options: ["지구의 날", "식목일", "어린이날", "어버이날"], a: 0 },
+          { q: "나무를 많이 심도록 정한 날은?", options: ["4월 5일(식목일)", "5월 5일", "6월 6일", "7월 17일"], a: 0 },
+          { q: "나라를 위해 목숨 바친 분들을 기리는 날은?", options: ["현충일(6월 6일)", "개천절", "제헌절", "광복절"], a: 0 },
+          { q: "우리나라 개천절은 몇 월 몇 일일까요?", options: ["10월 3일", "8월 15일", "3월 1일", "7월 17일"], a: 0 }
+        ]
+      },
+      science: {
+        1: [
+          { q: "식물이 빛을 받아 영양분을 만드는 작용은?", options: ["광합성", "호흡", "증산작용", "소화"], a: 0 },
+          { q: "물의 화학 기호는?", options: ["H2O", "CO2", "O2", "N2"], a: 0 },
+          { q: "태양계에서 가장 큰 행성은?", options: ["목성", "토성", "지구", "화성"], a: 0 },
+          { q: "사람의 뼈 개수는 약 몇 개일까요?", options: ["206개", "100개", "300개", "500개"], a: 0 },
+          { q: "지구의 자전 주기는?", options: ["하루(24시간)", "1년", "한 달", "12시간"], a: 0 }
+        ],
+        2: [
+          { q: "공기 중 가장 많은 비율을 차지하는 기체는?", options: ["질소", "산소", "이산화탄소", "수소"], a: 0 },
+          { q: "빛이 거울에 부딪혀 튕겨 나가는 현상은?", options: ["반사", "굴절", "분산", "흡수"], a: 0 },
+          { q: "자석에서 서로 끌어당기는 극은?", options: ["다른 극(N-S)", "같은 극(N-N)", "S-S극", "없음"], a: 0 },
+          { q: "지구에서 중력이 가장 강하게 작용하는 방향은?", options: ["지구 중심 방향", "하늘 방향", "동쪽", "서쪽"], a: 0 },
+          { q: "소리의 전달 속도가 가장 빠른 상태는?", options: ["고체", "액체", "기체", "진공"], a: 0 }
+        ],
+        3: [
+          { q: "얼음이 물로 변하는 현상은?", options: ["융해(녹음)", "응고", "기화", "액화"], a: 0 },
+          { q: "물이 수증기로 변하는 현상은?", options: ["증발/기화", "응고", "융해", "승화"], a: 0 },
+          { q: "체온을 측정할 때 쓰는 도구는?", options: ["체온계", "체중계", "자", "저울"], a: 0 },
+          { q: "물체의 무게를 측정할 때 쓰는 도구는?", options: ["저울", "자", "시계", "나침반"], a: 0 },
+          { q: "지구의 위성은 무엇일까요?", options: ["달", "태양", "금성", "화성"], a: 0 }
+        ],
+        4: [
+          { q: "태양계에서 스스로 빛을 내는 별(항성)은?", options: ["태양", "지구", "달", "목성"], a: 0 },
+          { q: "식물의 뿌리가 하는 주요 역할은?", options: ["물과 영양분 흡수", "광합성", "꽃피우기", "씨앗 만들기"], a: 0 },
+          { q: "사람이 숨을 쉴 때 주로 마시는 기체는?", options: ["산소", "이산화탄소", "질소", "헬륨"], a: 0 },
+          { q: "사람이 숨을 뱉을 때 나오는 주요 기체는?", options: ["이산화탄소", "산소", "수소", "네온"], a: 0 },
+          { q: "곤충의 몸 구조는 머리, 가슴, 그리고 무엇일까요?", options: ["배", "다리", "날개", "꼬리"], a: 0 }
+        ],
+        5: [
+          { q: "곤충의 다리는 모두 몇 개일까요?", options: ["6개", "4개", "8개", "10개"], a: 0 },
+          { q: "거미의 다리는 모두 몇 개일까요?", options: ["8개", "6개", "4개", "10개"], a: 0 },
+          { q: "공룡이 살던 시대는?", options: ["중생대", "고생대", "신생대", "선캠브리아대"], a: 0 },
+          { q: "화석이 주로 발견되는 암석은?", options: ["퇴적암", "화성암", "변성암", "현무암"], a: 0 },
+          { q: "화산이 분출할 때 나오는 뜨거운 액체는?", options: ["용암", "석유", "물", "온천수"], a: 0 }
+        ],
+        6: [
+          { q: "지진의 크기를 나타내는 단위는?", options: ["규모/리히터", "도(℃)", "미터(m)", "킬로그램(kg)"], a: 0 },
+          { q: "지구 둘레를 도는 인공 물체는?", options: ["인공위성", "혜성", "유성", "소행성"], a: 0 },
+          { q: "밤하늘에 떨어지는 별똥별의 정식 명칭은?", options: ["유성", "항성", "행성", "위성"], a: 0 },
+          { q: "북쪽을 찾을 때 사용하는 도구는?", options: ["나침반", "망원경", "현미경", "돋보기"], a: 0 },
+          { q: "작은 물체를 크게 확대해서 보는 도구는?", options: ["현미경", "망원경", "안경", "선글라스"], a: 0 }
+        ],
+        7: [
+          { q: "멀리 있는 우주나 별을 관찰하는 도구는?", options: ["망원경", "현미경", "돋보기", "카메라"], a: 0 },
+          { q: "피가 몸 전체로 돌도록 펌프질하는 기관은?", options: ["심장", "폐", "위", "간"], a: 0 },
+          { q: "음식물을 소화시키는 주요 장기는?", options: ["위", "폐", "심장", "뇌"], a: 0 },
+          { q: "숨을 쉬는 데 필요한 호흡 기관은?", options: ["폐(허파)", "위", "간", "신장"], a: 0 },
+          { q: "생각하고 몸을 조절하는 기관은?", options: ["뇌", "심장", "위", "뼈"], a: 0 }
+        ],
+        8: [
+          { q: "물의 끓는점은 몇 도(℃)일까요?", options: ["100도", "0도", "50도", "200도"], a: 0 },
+          { q: "물이 어는점은 몇 도(℃)일까요?", options: ["0도", "100도", "-10도", "10도"], a: 0 },
+          { q: "자석에 붙는 물질은?", options: ["철", "플라스틱", "유리", "나무"], a: 0 },
+          { q: "전기가 잘 통하는 물질을 무엇이라 할까요?", options: ["도체", "부도체", "절연체", "반도체"], a: 0 },
+          { q: "전기가 통하지 않는 물질을 무엇이라 할까요?", options: ["부도체(절연체)", "도체", "초전도체", "합금"], a: 0 }
+        ],
+        9: [
+          { q: "무지개의 색깔은 모두 몇 가지일까요?", options: ["7가지", "5가지", "6가지", "10가지"], a: 0 },
+          { q: "낮과 밤이 생기는 원인은 지구의 무엇 때문일까요?", options: ["자전", "공전", "중력", "수평운동"], a: 0 },
+          { q: "계절이 바뀌는 원인은 지구의 무엇 때문일까요?", options: ["공전", "자전", "지진", "자장가"], a: 0 },
+          { q: "태양 빛이 달에 가려지는 현상은?", options: ["일식", "월식", "환상", "굴절"], a: 0 },
+          { q: "달이 지구의 그림자에 가려지는 현상은?", options: ["월식", "일식", "자전", "공전"], a: 0 }
+        ],
+        10: [
+          { q: "소리가 전파되는 파동 형태는?", options: ["음파", "광파", "전파", "X선"], a: 0 },
+          { q: "에너지의 단위로 쓰이는 것은?", options: ["줄(J)", "미터(m)", "그램(g)", "리터(L)"], a: 0 },
+          { q: "원자의 중심에 있는 것은?", options: ["원자핵", "전자", "광자", "양자"], a: 0 },
+          { q: "중력을 발견한 유명한 과학자는?", options: ["뉴턴", "에디슨", "아인슈타인", "노벨"], a: 0 },
+          { q: "상대성 이론을 발표한 과학자는?", options: ["아인슈타인", "뉴턴", "갈릴레이", "장영실"], a: 0 }
+        ]
       }
-    }
+    };
 
-    /* Generator for 100 Categories */
-    const categories = [];
-    const subjects = ["수학", "국어", "영어"];
-    
-    const grades = ["초등 1학년", "초등 2학년", "초등 3학년", "초등 4학년", "초등 5학년", "초등 6학년", "중학교 1학년", "중학교 2학년", "중학교 3학년", "고등학교 1학년", "고등학교 2학년", "고등학교 3학년"];
-    grades.forEach((g, idx) => {
-      subjects.forEach(sub => {
-        categories.push({
-          id: `grade_${idx}_${sub}`,
-          title: `${g} [${sub}]`,
-          icon: sub === "수학" ? "fa-calculator" : sub === "국어" ? "fa-book" : "fa-language",
-          type: "school",
-          subject: sub
-        });
-      });
-    });
-
-    const trends = [
-      { name: "유튜버 / 크리에이터", icon: "fa-youtube" }, { name: "정치인 & 역사 리더", icon: "fa-landmark" },
-      { name: "철도 & 지하철", icon: "fa-train-subway" }, { name: "아이돌 / K-POP", icon: "fa-music" },
-      { name: "애니 & 웹툰", icon: "fa-tv" }, { name: "게임 & 이스포츠", icon: "fa-gamepad" },
-      { name: "신조어 & 밈", icon: "fa-comments" }, { name: "영화 & OTT", icon: "fa-film" }
-    ];
-    trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "일반" }));
-
-    const hobbies = [
-      "세계 수도", "세계 역사", "음식 & 맛집", "스포츠 & 축구", "동물 & 자연", "과학 & 우주", "자동차 & 탈것",
-      "속담 & 사자성어", "IT & 코딩", "클래식 음악", "미술 & 명화", "경제 & 주식", "보드게임", "패션 & 브랜드",
-      "군사 & 무기", "환경 & 생태", "미스터리 & 신화", "건강 & 의학", "법률 상식", "한국사"
-    ];
-    hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식" }));
-
-    /* Stage Question Generator (1~10 Stages) */
-    function generateStageQuestions(cat, stageNum) {
-      const qs = [];
-      for (let i = 1; i <= 5; i++) {
-        let questionText = `${cat.title} (Stage ${stageNum}) ${i}번 문제`;
-        let options = ["정답 옵션", "오답 A", "오답 B", "오답 C"];
-        
-        if (cat.subject === "수학") {
-          const a = stageNum * 8 + i * 2;
-          const b = stageNum * 4 + i;
-          questionText = `다음 계산의 값은? : ${a} + ${b} = ?`;
-          options = [`${a + b}`, `${a + b + 3}`, `${a + b - 2}`, `${a * b}`];
-        } else if (cat.subject === "국어") {
-          questionText = `Stage ${stageNum} - 다음 중 올바른 표기법은?`;
-          options = ["무난하다", "문안하다", "무난하타", "문안하타"];
-        } else if (cat.subject === "영어") {
-          questionText = `Stage ${stageNum} - 다음 영어 단어의 뜻으로 올바른 것은?`;
-          options = ["정답 뜻", "틀린 뜻 A", "틀린 뜻 B", "틀린 뜻 C"];
-        }
-
-        qs.push({
-          question: questionText,
-          options: options.sort(() => Math.random() - 0.5),
-          answer: options[0],
-          hint: "첫 번째 보기 항목을 잘 살펴 보세요!"
-        });
-      }
-      return qs;
-    }
-
-    /* UI CONTROLLER */
-    let currentFilter = 'all';
-    let currentCat = null;
+    // 3. 네비게이션 & UI 상태 관리
+    let currentCategory = 'korean';
     let currentStage = 1;
-    let currentQuestions = [];
-    let currentQIdx = 0;
-    let stageScore = 0;
-    let correctCount = 0;
-    let timerInterval = null;
-    let activeMultiplier = 1;
+    let currentQuizIndex = 0;
+    let currentScore = 0;
+    let timer = null;
+    let timeLeft = 15;
+    let isDoublePoint = false;
 
-    function updateHeaderUI() {
+    function updateUI() {
+      document.getElementById('user-stars').innerText = gameState.stars;
       document.getElementById('user-points').innerText = gameState.points;
-      document.getElementById('total-stars').innerText = gameState.stars;
-      document.getElementById('equipped-title').innerText = gameState.equippedTitle;
-      document.getElementById('item-time-cnt').innerText = gameState.inventory.time;
-      document.getElementById('item-hint-cnt').innerText = gameState.inventory.hint;
-      document.getElementById('item-double-cnt').innerText = gameState.inventory.double;
+      document.getElementById('user-title').innerText = gameState.equippedTitle;
+
+      document.getElementById('item-time-count').innerText = gameState.inventory.time;
+      document.getElementById('item-hint-count').innerText = gameState.inventory.hint;
+      document.getElementById('item-double-count').innerText = gameState.inventory.double;
     }
 
     function showView(viewId) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(viewId).classList.add('active');
-      if (viewId === 'category-view') renderCategories();
-      if (viewId === 'title-view') renderTitles();
-      updateHeaderUI();
     }
 
-    function setFilter(type, btn) {
-      currentFilter = type;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    function navTo(viewId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderCategories();
+      showView(viewId);
     }
 
-    function filterCategories() {
-      renderCategories();
-    }
+    // 4. 스테이지 선택 함수 (Stage 1 ~ Stage 10)
+    function selectCategory(catKey) {
+      currentCategory = catKey;
+      const catNames = { korean: '국어', math: '수학', society: '사회', science: '과학' };
+      document.getElementById('selected-category-title').innerText = `${catNames[catKey]} 스테이지`;
 
-    function renderCategories() {
-      const grid = document.getElementById('category-grid');
-      const search = document.getElementById('search-bar').value.toLowerCase();
-      grid.innerHTML = '';
+      const stageList = document.getElementById('stage-list');
+      stageList.innerHTML = '';
 
-      categories.filter(c => {
-        const matchesFilter = (currentFilter === 'all') || (c.type === currentFilter);
-        const matchesSearch = c.title.toLowerCase().includes(search);
-        return matchesFilter && matchesSearch;
-      }).forEach(c => {
-        const card = document.createElement('div');
-        card.className = 'cat-card';
-        card.onclick = () => selectCategory(c);
-        card.innerHTML = `
-          <div class="cat-icon"><i class="fa-solid ${c.icon}"></i></div>
-          <div class="cat-title">${c.title}</div>
-          <div class="cat-meta"><span>Stage 1~10</span></div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function selectCategory(cat) {
-      currentCat = cat;
-      document.getElementById('stage-cat-title').innerText = cat.title;
-      renderStages();
-      showView('stage-view');
-    }
-
-    /* Render 10 Stages */
-    function renderStages() {
-      const grid = document.getElementById('stage-grid');
-      grid.innerHTML = '';
-
-      for (let s = 1; s <= 10; s++) {
-        const key = `${currentCat.id}_s${s}`;
-        const unlocked = s === 1 || (gameState.stageProgress[`${currentCat.id}_s${s-1}`]?.stars > 0);
-        const stars = gameState.stageProgress[key]?.stars || 0;
+      for (let i = 1; i <= 10; i++) {
+        const starCount = gameState.stageProgress[`${catKey}_${i}`] || 0;
+        const starsText = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
 
         const card = document.createElement('div');
-        card.className = `stage-card ${unlocked ? '' : 'locked'}`;
-        card.onclick = () => { if (unlocked) startStage(s); };
+        card.className = 'stage-card';
+        card.onclick = () => startQuiz(i);
         card.innerHTML = `
-          <div class="stage-number">STAGE ${s}</div>
-          <div class="stage-stars">
-            ${'<i class="fa-solid fa-star"></i>'.repeat(stars)}
-            ${'<i class="fa-regular fa-star"></i>'.repeat(3 - stars)}
-          </div>
-          <div style="font-size:0.85rem;">${unlocked ? '도전 가능' : '<i class="fa-solid fa-lock"></i> 잠김'}</div>
+          <span>Stage ${i}</span>
+          <span class="stage-stars">${starsText}</span>
         `;
-        grid.appendChild(card);
+        stageList.appendChild(card);
       }
+
+      showView('view-stages');
     }
 
-    /* GAMEPLAY ENGINE */
-    function startStage(stageNum) {
+    // 5. 퀴즈 게임 로직
+    function startQuiz(stageNum) {
       currentStage = stageNum;
-      currentQuestions = generateStageQuestions(currentCat, stageNum);
-      currentQIdx = 0;
-      stageScore = 0;
-      correctCount = 0;
-      showView('quiz-view');
+      currentQuizIndex = 0;
+      currentScore = 0;
+      isDoublePoint = false;
+      showView('view-quiz');
       loadQuestion();
     }
 
     function loadQuestion() {
-      if (currentQIdx >= currentQuestions.length) {
-        endStage();
-        return;
-      }
+      clearInterval(timer);
+      timeLeft = 15;
+      document.getElementById('time-left').innerText = timeLeft;
 
-      const q = currentQuestions[currentQIdx];
-      document.getElementById('subject-badge').innerText = currentCat.subject || "일반";
-      document.getElementById('quiz-num').innerText = `문제 ${currentQIdx + 1} / ${currentQuestions.length}`;
-      document.getElementById('quiz-question').innerText = q.question;
+      const questions = quizData[currentCategory][currentStage];
+      const q = questions[currentQuizIndex];
 
-      const optionsGrid = document.getElementById('options-grid');
-      optionsGrid.innerHTML = '';
+      document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / ${questions.length}`;
+      document.getElementById('question-text').innerText = q.q;
 
-      q.options.forEach(opt => {
+      const optionsBox = document.getElementById('options-container');
+      optionsBox.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.innerText = opt;
-        btn.onclick = () => checkAnswer(opt, q.answer, btn);
-        optionsGrid.appendChild(btn);
+        btn.innerText = `${idx + 1}. ${opt}`;
+        btn.onclick = () => checkAnswer(idx);
+        optionsBox.appendChild(btn);
       });
 
-      startTimer();
-    }
-
-    function startTimer() {
-      clearInterval(timerInterval);
-      const timerBar = document.getElementById('timer-bar');
-      let timePercent = 100;
-      
-      timerInterval = setInterval(() => {
-        timePercent -= 1;
-        timerBar.style.width = timePercent + '%';
-        if (timePercent <= 0) {
-          clearInterval(timerInterval);
-          playSound('wrong');
-          nextQuestion();
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('time-left').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer(-1); // 시간 초과 처리
         }
-      }, 150);
+      }, 1000);
     }
 
-    function checkAnswer(selected, correct, btn) {
-      clearInterval(timerInterval);
-      const isCorrect = selected === correct;
+    function checkAnswer(selectedIdx) {
+      clearInterval(timer);
+      const q = quizData[currentCategory][currentStage][currentQuizIndex];
 
-      if (isCorrect) {
-        btn.classList.add('correct');
-        playSound('correct');
-        stageScore += 100 * activeMultiplier;
-        correctCount++;
-        confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
-      } else {
-        btn.classList.add('wrong');
-        document.getElementById('quiz-card').classList.add('shake');
-        setTimeout(() => document.getElementById('quiz-card').classList.remove('shake'), 400);
-        playSound('wrong');
+      if (selectedIdx === q.a) {
+        let earned = 20;
+        if (isDoublePoint) earned *= 2;
+        currentScore += earned;
       }
 
-      activeMultiplier = 1;
-      setTimeout(nextQuestion, 1000);
+      currentQuizIndex++;
+      const questions = quizData[currentCategory][currentStage];
+
+      // 남아있는 문제가 있다면 다음 문제 로드, 없으면 종료
+      if (currentQuizIndex < questions.length) {
+        loadQuestion();
+      } else {
+        finishQuiz();
+      }
     }
 
-    function nextQuestion() {
-      currentQIdx++;
-      loadQuestion();
+    function finishQuiz() {
+      showView('view-result');
+      let stars = 1;
+      if (currentScore >= 80) stars = 3;
+      else if (currentScore >= 40) stars = 2;
+
+      document.getElementById('result-stars').innerText = '⭐'.repeat(stars);
+      document.getElementById('result-points').innerText = currentScore;
+
+      // 점수 & 별 저장
+      gameState.points += currentScore;
+      const stageKey = `${currentCategory}_${currentStage}`;
+      if (!gameState.stageProgress[stageKey] || gameState.stageProgress[stageKey] < stars) {
+        gameState.stageProgress[stageKey] = stars;
+      }
+
+      // 별 총합 계산
+      let totalStars = 0;
+      Object.values(gameState.stageProgress).forEach(s => totalStars += s);
+      gameState.stars = totalStars;
+
+      saveState();
     }
 
+    // 6. 아이템 사용
     function useItem(type) {
       if (gameState.inventory[type] <= 0) {
         alert("아이템이 부족합니다!");
         return;
       }
-      gameState.inventory[type]--;
+
       if (type === 'time') {
-        startTimer();
+        timeLeft += 10;
+        document.getElementById('time-left').innerText = timeLeft;
       } else if (type === 'hint') {
-        alert("힌트: " + currentQuestions[currentQIdx].hint);
+        const q = quizData[currentCategory][currentStage][currentQuizIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+        for (let i = 0; i < buttons.length; i++) {
+          if (i !== q.a) {
+            buttons[i].style.visibility = 'hidden';
+            break;
+          }
+        }
       } else if (type === 'double') {
-        activeMultiplier = 2;
-        alert("이번 문제 정답 점수가 2배가 됩니다!");
+        isDoublePoint = true;
+        alert("다음 문제 점수가 2배로 부여됩니다!");
       }
+
+      gameState.inventory[type]--;
       saveState();
     }
 
-    function endStage() {
-      const accuracy = (correctCount / currentQuestions.length) * 100;
-      let earnedStars = 0;
-      if (accuracy >= 100) earnedStars = 3;
-      else if (accuracy >= 60) earnedStars = 2;
-      else if (accuracy >= 40) earnedStars = 1;
-
-      const key = `${currentCat.id}_s${currentStage}`;
-      const prevStars = gameState.stageProgress[key]?.stars || 0;
-      
-      if (earnedStars > prevStars) {
-        gameState.stars += (earnedStars - prevStars);
-        gameState.stageProgress[key] = { stars: earnedStars };
-      }
-
-      gameState.points += stageScore;
-      saveState();
-
-      document.getElementById('result-title').innerText = earnedStars > 0 ? "STAGE CLEAR!" : "STAGE FAILED";
-      document.getElementById('result-stars').innerHTML = '<i class="fa-solid fa-star"></i>'.repeat(earnedStars);
-      document.getElementById('result-score').innerText = stageScore;
-      document.getElementById('result-acc').innerText = accuracy.toFixed(0);
-
-      showView('result-view');
-    }
-
-    /* SHOP & TITLES SYSTEM */
-    function buyItem(type, price) {
-      if (gameState.points < price) {
+    // 7. 상점 기능
+    function buyItem(type, cost) {
+      if (gameState.points < cost) {
         alert("포인트가 부족합니다!");
         return;
       }
-      gameState.points -= price;
+      gameState.points -= cost;
       gameState.inventory[type]++;
       saveState();
-      alert("구매 완료!");
+      alert("구매가 완료되었습니다!");
     }
 
-    const availableTitles = [
-      "초보 퀴즈러", "지식 탐험가", "스피드 마스터", "스테이지 정복자", "퀴즈 왕국의 지배자", "퀴즈 재벌"
-    ];
-
-    function renderTitles() {
-      const grid = document.getElementById('titles-grid');
-      grid.innerHTML = '';
-
-      availableTitles.forEach(t => {
-        const isUnlocked = gameState.unlockedTitles.includes(t);
-        const isEquipped = gameState.equippedTitle === t;
-
-        const card = document.createElement('div');
-        card.className = 'shop-item';
-        card.innerHTML = `
-          <h3><i class="fa-solid fa-award" style="color:#38bdf8;"></i> ${t}</h3>
-          <p style="color:var(--text-sub);">${isUnlocked ? '해금 완료' : '업적 달성 필요'}</p>
-          <button class="btn ${isEquipped ? 'btn-secondary' : ''}" onclick="equipTitle('${t}')" ${!isUnlocked ? 'disabled' : ''}>
-            ${isEquipped ? '장착 중' : '장착하기'}
-          </button>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function equipTitle(title) {
-      gameState.equippedTitle = title;
-      saveState();
-      renderTitles();
-    }
-
-    // Initialize App
-    renderCategories();
-    updateHeaderUI();
+    // 초기 실행
+    updateUI();
   </script>
 </body>
 </html>
