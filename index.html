@@ -58,17 +58,20 @@
       border: 1px solid rgba(255,255,255,0.08);
     }
 
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
+   .logo {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff; /* 기본 텍스트 색상을 선명한 흰색으로 설정 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.logo i {
+  color: #a855f7; /* 왕관 아이콘에 네온 퍼플 포인트 */
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); /* 아이콘 빛남 효과 */
+}
 
     .user-stats {
       display: flex;
