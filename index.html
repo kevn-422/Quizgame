@@ -185,7 +185,7 @@
             <h1 class="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400">
               전국 고속도로 차 피하기 (PC 가로 화면 모드)
             </h1>
-            <p class="text-xs text-slate-400">총 37개 노선과 13종의 차량을 즐겨보세요!</p>
+            <p class="text-xs text-slate-400">총 37개 노선과 14종의 차량을 즐겨보세요!</p>
           </div>
         </div>
 
@@ -261,7 +261,7 @@
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-warehouse text-amber-400 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-bold text-white">차고 상점 (총 13종의 차량)</h2>
+            <h2 class="text-lg font-bold text-white">차고 상점 (총 14종의 차량)</h2>
             <p class="text-xs text-slate-400">주행 중 코인을 모아 차량을 구매하고 특수 스킬을 활용하세요.</p>
           </div>
         </div>
@@ -279,6 +279,26 @@
       <!-- Car Grid (Horizontal Widescreen 2 Rows) -->
       <div id="carGrid" class="grid grid-cols-2 gap-3 my-2 max-h-[300px] overflow-y-auto pr-2">
         <!-- Dynamic Cars List -->
+      </div>
+
+      <!-- Vehicle Upgrade System -->
+      <div id="vehicleUpgradePanel" class="bg-slate-900 border border-cyan-500/40 rounded-xl p-3 flex flex-col gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="text-sm font-black text-white">🔧 차량 업그레이드</div>
+            <div id="upgradeCarSummary" class="text-[11px] text-slate-300 mt-1">차량별 성능을 최대 3단계까지 강화할 수 있습니다.</div>
+          </div>
+          <span id="upgradeLevelBadge" class="text-xs font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-1 rounded-lg">Lv.0 / 3</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-[10px] text-slate-300">
+          <div class="bg-slate-800/80 rounded-lg p-2">최고속도<br><strong id="upgradeSpeedValue" class="text-white text-sm">-</strong></div>
+          <div class="bg-slate-800/80 rounded-lg p-2">가속력<br><strong id="upgradeAccelValue" class="text-white text-sm">-</strong></div>
+          <div class="bg-slate-800/80 rounded-lg p-2">연료 효율<br><strong id="upgradeFuelValue" class="text-white text-sm">기본</strong></div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div id="upgradeNextBenefit" class="text-[10px] text-cyan-200">다음 단계: 최고속도 +15km/h · 가속력 +12 · 효율 +8%</div>
+          <button id="buyUpgradeBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-xs">업그레이드 · 100 코인</button>
+        </div>
       </div>
 
       <!-- Fuel / EV Charging Item Shop -->
@@ -329,6 +349,10 @@
         </div>
       </div>
 
+      <button id="reviveBtn" class="cursor-pointer w-full max-w-sm mb-3 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg active:scale-95 transition text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-heart-pulse"></i> 부활하기 · 100 코인 (하루 1회)
+      </button>
+      <p id="reviveStatus" class="text-xs text-slate-400 mb-3">하루에 한 번 100코인으로 부활할 수 있습니다.</p>
       <div class="flex gap-3 w-full max-w-sm">
         <button id="restartBtn" class="cursor-pointer flex-1 py-3 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-xs md:text-sm flex items-center justify-center gap-2">
           <i class="fa-solid fa-rotate-right"></i> 다시 도전하기
@@ -1176,6 +1200,22 @@
         hasMagnet: false,
         isElectric: true,
         energyUse: 0.27
+      },
+      {
+        id: 'ultra_premium',
+        name: '울트라 프리미엄카',
+        price: 1000,
+        color: '#f0abfc',
+        maxSpeed: 400,
+        accel: 145,
+        lives: 5,
+        perkText: '최대 운행거리 3,000km · 장거리 특화',
+        icon: 'fa-gem',
+        coinMultiplier: 1.5,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 100 / 3000,
+        rangeKm: 3000
       }
     ];
 
@@ -1186,6 +1226,31 @@
     let equippedCarId = localStorage.getItem('highway_equipped_pc') || 'compact';
     let fuelLevel = Math.max(0, Math.min(100, Number(localStorage.getItem('highway_fuel_pc') ?? 100)));
     let fuelPacks = Math.max(0, parseInt(localStorage.getItem('highway_fuel_packs_pc') || '0', 10));
+    let carUpgradeLevels = {};
+    try {
+      carUpgradeLevels = JSON.parse(localStorage.getItem('highway_car_upgrades_pc') || '{}') || {};
+    } catch (e) {
+      carUpgradeLevels = {};
+    }
+
+    const UPGRADE_COSTS = [100, 150, 200];
+    const UPGRADE_SPEED_BONUS = 15;
+    const UPGRADE_ACCEL_BONUS = 12;
+    const UPGRADE_EFFICIENCY_BONUS = 0.08;
+
+    function getCarUpgradeLevel(carId = equippedCarId) {
+      return Math.max(0, Math.min(3, Number(carUpgradeLevels[carId] || 0)));
+    }
+
+    function getCarUpgradeStats(car) {
+      const level = getCarUpgradeLevel(car.id);
+      return {
+        level,
+        maxSpeed: car.maxSpeed + level * UPGRADE_SPEED_BONUS,
+        accel: car.accel + level * UPGRADE_ACCEL_BONUS,
+        fuelEfficiency: level * UPGRADE_EFFICIENCY_BONUS
+      };
+    }
 
     function saveUserData() {
       localStorage.setItem('highway_coins_pc', totalCoins.toString());
@@ -1193,8 +1258,76 @@
       localStorage.setItem('highway_equipped_pc', equippedCarId);
       localStorage.setItem('highway_fuel_pc', String(fuelLevel));
       localStorage.setItem('highway_fuel_packs_pc', String(fuelPacks));
+      localStorage.setItem('highway_car_upgrades_pc', JSON.stringify(carUpgradeLevels));
       updateCoinsUI();
       updateFuelUI();
+    }
+
+    const REVIVE_COST = 100;
+    const REVIVE_DAILY_KEY = 'highway_revive_used_date_pc';
+
+    function getLocalDateKey() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function updateReviveButton() {
+      const button = document.getElementById('reviveBtn');
+      const status = document.getElementById('reviveStatus');
+      if (!button || !status) return;
+      const usedToday = localStorage.getItem(REVIVE_DAILY_KEY) === getLocalDateKey();
+      button.disabled = usedToday || totalCoins < REVIVE_COST;
+      button.classList.toggle('opacity-50', button.disabled);
+      button.classList.toggle('cursor-not-allowed', button.disabled);
+      if (usedToday) {
+        button.innerHTML = '<i class="fa-solid fa-calendar-check"></i> 오늘 부활 사용 완료';
+        status.textContent = '부활은 매일 한 번만 사용할 수 있습니다. 내일 다시 이용할 수 있어요.';
+      } else if (totalCoins < REVIVE_COST) {
+        button.innerHTML = '<i class="fa-solid fa-heart-pulse"></i> 부활하기 · 100 코인';
+        status.textContent = `코인이 부족합니다. 현재 ${totalCoins}코인 / 필요 ${REVIVE_COST}코인`;
+      } else {
+        button.innerHTML = '<i class="fa-solid fa-heart-pulse"></i> 부활하기 · 100 코인 (하루 1회)';
+        status.textContent = '오늘 아직 부활을 사용하지 않았습니다.';
+      }
+    }
+
+    function reviveAfterCrash() {
+      const usedToday = localStorage.getItem(REVIVE_DAILY_KEY) === getLocalDateKey();
+      if (usedToday) {
+        alert('오늘 사용할 수 있는 부활 기회를 이미 사용했습니다.');
+        updateReviveButton();
+        return;
+      }
+      if (totalCoins < REVIVE_COST) {
+        alert('부활에는 100코인이 필요합니다.');
+        updateReviveButton();
+        return;
+      }
+
+      totalCoins -= REVIVE_COST;
+      localStorage.setItem(REVIVE_DAILY_KEY, getLocalDateKey());
+      lives = 1;
+      fuelLevel = Math.max(fuelLevel, 10);
+      invulnerableTimer = 3;
+      player.speed = Math.max(player.minSpeed, 120);
+      saveUserData();
+      updateLivesUI();
+      gameOverOverlay.classList.add('hidden');
+      gameState = 'PLAYING';
+      lastTime = performance.now();
+      startTime = Date.now() - elapsedTime;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        elapsedTime = Date.now() - startTime;
+        const mins = Math.floor(elapsedTime / 60000).toString().padStart(2, '0');
+        const secs = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
+        const ms = Math.floor((elapsedTime % 1000) / 10).toString().padStart(2, '0');
+        timerDisplay.textContent = `${mins}:${secs}.${ms}`;
+      }, 10);
+      requestAnimationFrame(gameLoop);
     }
 
     function getEquippedCar() {
@@ -1475,6 +1608,56 @@
       });
     }
 
+    function renderUpgradePanel() {
+      const car = getEquippedCar();
+      const stats = getCarUpgradeStats(car);
+      const levelBadge = document.getElementById('upgradeLevelBadge');
+      const summary = document.getElementById('upgradeCarSummary');
+      const speedValue = document.getElementById('upgradeSpeedValue');
+      const accelValue = document.getElementById('upgradeAccelValue');
+      const fuelValue = document.getElementById('upgradeFuelValue');
+      const nextBenefit = document.getElementById('upgradeNextBenefit');
+      const button = document.getElementById('buyUpgradeBtn');
+      if (!button) return;
+
+      levelBadge.textContent = `Lv.${stats.level} / 3`;
+      summary.textContent = `${car.name} 성능 강화 · 차량마다 업그레이드 단계가 따로 저장됩니다.`;
+      speedValue.textContent = `${stats.maxSpeed} km/h`;
+      accelValue.textContent = `${stats.accel}`;
+      fuelValue.textContent = stats.level ? `+${Math.round(stats.fuelEfficiency * 100)}%` : '기본';
+
+      if (stats.level >= 3) {
+        nextBenefit.textContent = '최대 업그레이드 단계에 도달했습니다!';
+        button.textContent = '최대 단계 달성';
+        button.disabled = true;
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        nextBenefit.textContent = `다음 단계 혜택: 최고속도 +${UPGRADE_SPEED_BONUS}km/h · 가속력 +${UPGRADE_ACCEL_BONUS} · 연료/배터리 효율 +8%`;
+        button.textContent = `업그레이드 · ${UPGRADE_COSTS[stats.level]} 코인`;
+        button.disabled = false;
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function buyCarUpgrade() {
+      const car = getEquippedCar();
+      const level = getCarUpgradeLevel(car.id);
+      if (level >= 3) {
+        alert('이 차량은 이미 최대 3단계까지 업그레이드했습니다.');
+        return;
+      }
+      const cost = UPGRADE_COSTS[level];
+      if (totalCoins < cost) {
+        alert(`코인이 부족합니다. 다음 업그레이드에는 ${cost}코인이 필요합니다.`);
+        return;
+      }
+      totalCoins -= cost;
+      carUpgradeLevels[car.id] = level + 1;
+      saveUserData();
+      renderGarageGrid();
+      alert(`${car.name} 업그레이드 완료! Lv.${level + 1}\n최고속도 +${UPGRADE_SPEED_BONUS}km/h, 가속력 +${UPGRADE_ACCEL_BONUS}, 연료/배터리 효율 +8%`);
+    }
+
     function renderGarageGrid() {
       carGrid.innerHTML = '';
       CAR_DATABASE.forEach(car => {
@@ -1529,6 +1712,7 @@
       });
 
       updateFuelUI();
+      renderUpgradePanel();
 
       document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1673,8 +1857,9 @@
       audio.init();
 
       const equipped = getEquippedCar();
-      player.maxSpeed = equipped.maxSpeed;
-      player.accel = equipped.accel;
+      const upgradedStats = getCarUpgradeStats(equipped);
+      player.maxSpeed = upgradedStats.maxSpeed;
+      player.accel = upgradedStats.accel;
       player.color = equipped.color;
       maxLives = equipped.lives;
       lives = maxLives;
@@ -1724,6 +1909,7 @@
 
     closeGarageBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
     garageDoneBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
+    document.getElementById('buyUpgradeBtn').addEventListener('click', buyCarUpgrade);
     document.getElementById('buyFuelBtn').addEventListener('click', buyFuelPack);
     document.getElementById('useFuelBtn').addEventListener('click', useFuelPack);
 
@@ -1824,8 +2010,10 @@
       const activeRoute = ROUTE_DATA[selectedRouteIndex];
       const distanceGained = (player.speed / 3600) * dt * 28;
       currentDistance += distanceGained;
-      // 연료/배터리 100% 기준 약 2,000km 주행 가능
-      const fuelUsePerKm = 100 / 2000;
+      // 기본 차량은 2,000km, 울트라 프리미엄카는 3,000km 주행 가능. 업그레이드 효율 보너스 적용
+      const upgradeStats = getCarUpgradeStats(equipped);
+      const baseRangeKm = equipped.rangeKm || 2000;
+      const fuelUsePerKm = (100 / baseRangeKm) * (1 - upgradeStats.fuelEfficiency);
       fuelLevel = Math.max(0, fuelLevel - distanceGained * fuelUsePerKm);
       updateFuelUI();
       if (fuelLevel <= 0) {
@@ -1950,7 +2138,10 @@
       document.getElementById('goTime').textContent = timerDisplay.textContent;
 
       gameOverOverlay.classList.remove('hidden');
+      updateReviveButton();
     }
+
+    document.getElementById('reviveBtn').addEventListener('click', reviveAfterCrash);
 
     function triggerVictory() {
       gameState = 'VICTORY';
