@@ -86,7 +86,18 @@
       background: rgba(56, 189, 248, 0.5);
       border-radius: 4px;
     }
-  </style>
+  
+    /* 전 노선 공통 날씨 효과 */
+    #weatherVisual { position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden; border-radius:1rem; opacity:0; transition:opacity .6s; }
+    #weatherVisual.active { opacity:1; }
+    #weatherVisual.rain { background:repeating-linear-gradient(105deg, transparent 0 16px, rgba(150,205,255,.28) 17px 19px, transparent 20px 34px); animation:rainMove .22s linear infinite; }
+    #weatherVisual.snow { background:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 2px); background-size:37px 43px; animation:snowMove 5s linear infinite; }
+    #weatherVisual.fog { background:linear-gradient(90deg,rgba(210,225,235,.28),rgba(210,225,235,.08),rgba(210,225,235,.3)); backdrop-filter:blur(1.5px); }
+    #weatherVisual.heat { background:linear-gradient(0deg,rgba(255,150,50,.13),transparent 65%); }
+    #weatherVisual.storm { background:repeating-linear-gradient(105deg,transparent 0 13px,rgba(160,195,255,.38) 14px 17px,transparent 18px 28px),rgba(20,35,65,.18); animation:rainMove .16s linear infinite; }
+    @keyframes rainMove { from{background-position:0 0} to{background-position:-35px 80px} }
+    @keyframes snowMove { from{background-position:0 -20px} to{background-position:20px 120px} }
+</style>
 </head>
 <body class="flex flex-col justify-between items-center p-2 md:p-4 select-none">
 
@@ -172,6 +183,7 @@
   <!-- WIDESCREEN GAME CANVAS CONTAINER -->
   <main id="canvasContainer" class="relative w-full max-w-6xl my-auto flex-1 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-700/80 shadow-2xl bg-slate-950 my-2">
     <canvas id="gameCanvas" class="w-full h-full block rounded-2xl z-0"></canvas>
+    <div id="weatherVisual" aria-hidden="true"></div>
 
     <!-- OVERLAY 1: START & ROUTE SELECT SCREEN -->
     <div id="startOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-6 z-20 pointer-events-auto">
@@ -409,7 +421,186 @@
     </div>
   </main>
 
+  <!-- 전 노선 공통 특별 날씨 타이머 -->
+  <section id="weatherPanel" class="w-full max-w-6xl mx-auto mb-3 rounded-xl border border-cyan-500/40 bg-slate-900/95 px-4 py-3 shadow-lg">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span id="weatherIcon" class="text-2xl">☀️</span>
+        <div><div class="text-sm font-black text-white">특별 상황 시스템 · 전 노선 적용</div><div id="weatherStatus" class="text-xs text-cyan-200">맑음 · 첫 특별 날씨를 기다리는 중</div></div>
+      </div>
+      <div class="text-right"><div id="weatherCountdownLabel" class="text-[10px] text-slate-400">폭우 발생까지</div><div id="weatherCountdown" class="font-mono text-xl font-black text-amber-300">05:00</div></div>
+    </div>
+    <div class="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="weatherProgress" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500" style="width:0%"></div></div>
+    <p class="mt-1 text-[10px] text-slate-500">첫 날씨는 게임 실행 5분 후 발생하며, 이후 1시간마다 다른 날씨로 변경됩니다.</p>
+  </section>
+
+  <!-- 전 노선 공통 랜덤 이벤트 -->
+  <section id="randomEventPanel" class="w-full max-w-6xl mx-auto mb-4 rounded-xl border border-fuchsia-500/40 bg-slate-900/95 px-4 py-3 shadow-lg">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span id="randomEventIcon" class="text-2xl">🎁</span>
+        <div><div class="text-sm font-black text-white">랜덤 이벤트 · 전 노선 적용</div><div id="randomEventStatus" class="text-xs text-fuchsia-200">첫 랜덤 이벤트를 기다리는 중</div></div>
+      </div>
+      <div class="text-right"><div id="randomEventCountdownLabel" class="text-[10px] text-slate-400">이벤트 시작까지</div><div id="randomEventCountdown" class="font-mono text-xl font-black text-fuchsia-300">02:00:00</div></div>
+    </div>
+    <div class="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="randomEventProgress" class="h-full bg-gradient-to-r from-fuchsia-400 to-amber-400" style="width:0%"></div></div>
+    <p class="mt-1 text-[10px] text-slate-500">2시간마다 무작위 이벤트가 시작되며, 한 번 시작하면 20분 동안 진행됩니다.</p>
+  </section>
+
   <script>
+    // --- 특별 상황 시스템: 모든 37개 노선에 공통 적용 ---
+    const WEATHER_TYPES = [
+      { name: '폭우', icon: '🌧️', cls: 'rain', desc: '강한 비가 내립니다. 안전 운전에 주의하세요!' },
+      { name: '폭설', icon: '❄️', cls: 'snow', desc: '눈이 내리는 겨울 도로입니다.' },
+      { name: '짙은 안개', icon: '🌫️', cls: 'fog', desc: '안개가 짙어져 시야가 흐려집니다.' },
+      { name: '폭풍우', icon: '⛈️', cls: 'storm', desc: '천둥과 폭우가 동반되는 날씨입니다.' },
+      { name: '폭염', icon: '🌡️', cls: 'heat', desc: '뜨거운 열기가 도로를 뒤덮습니다.' },
+      { name: '맑음', icon: '☀️', cls: '', desc: '날씨가 맑아졌습니다. 쾌적한 주행을 즐기세요!' }
+    ];
+    const FIRST_WEATHER_DELAY = 5 * 60 * 1000;
+    const WEATHER_INTERVAL = 60 * 60 * 1000;
+    const WEATHER_STORAGE_KEY = 'highway_weather_schedule_v1';
+    let weatherState;
+    try { weatherState = JSON.parse(localStorage.getItem(WEATHER_STORAGE_KEY) || 'null'); } catch (e) { weatherState = null; }
+    if (!weatherState || !Number.isFinite(weatherState.nextAt)) {
+      weatherState = { currentIndex: -1, lastIndex: -1, nextAt: Date.now() + FIRST_WEATHER_DELAY };
+    }
+    function persistWeatherState() {
+      localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify(weatherState));
+    }
+    function advanceWeatherSchedule(now = Date.now()) {
+      // 창을 닫아 둔 동안 지난 날씨 변경 시각도 모두 반영합니다.
+      while (now >= weatherState.nextAt) {
+        let next = weatherState.currentIndex < 0 ? 0 : Math.floor(Math.random() * WEATHER_TYPES.length);
+        if (weatherState.currentIndex >= 0 && WEATHER_TYPES.length > 1 && next === weatherState.lastIndex) next = (next + 1) % WEATHER_TYPES.length;
+        weatherState.lastIndex = next;
+        weatherState.currentIndex = next;
+        weatherState.nextAt += weatherState.currentIndex === 0 && weatherState.nextAt === 0 ? FIRST_WEATHER_DELAY : WEATHER_INTERVAL;
+      }
+      persistWeatherState();
+    }
+    // 초기 일정은 5분 후 첫 날씨, 이후 매 1시간마다 변경됩니다.
+    advanceWeatherSchedule();
+    let weatherCurrent = weatherState.currentIndex >= 0 ? WEATHER_TYPES[weatherState.currentIndex] : null;
+    function renderSpecialWeather() {
+      const visual = document.getElementById('weatherVisual');
+      visual.className = 'active ' + (weatherCurrent ? weatherCurrent.cls : '');
+      document.getElementById('weatherIcon').textContent = weatherCurrent ? weatherCurrent.icon : '☀️';
+      document.getElementById('weatherStatus').textContent = weatherCurrent
+        ? `${weatherCurrent.name} · ${weatherCurrent.desc}`
+        : '맑음 · 첫 특별 날씨를 기다리는 중';
+      document.getElementById('weatherCountdownLabel').textContent = weatherCurrent ? '다음 날씨 변경까지' : '폭우 발생까지';
+    }
+    function updateWeatherTimer() {
+      const now = Date.now();
+      const previousIndex = weatherState.currentIndex;
+      advanceWeatherSchedule(now);
+      if (weatherState.currentIndex !== previousIndex) {
+        weatherCurrent = weatherState.currentIndex >= 0 ? WEATHER_TYPES[weatherState.currentIndex] : null;
+        renderSpecialWeather();
+      }
+      const left = Math.max(0, weatherState.nextAt - now);
+      const totalSeconds = Math.ceil(left / 1000);
+      const hh = Math.floor(totalSeconds / 3600);
+      const mm = Math.floor((totalSeconds % 3600) / 60);
+      const ss = totalSeconds % 60;
+      document.getElementById('weatherCountdown').textContent = hh > 0
+        ? `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+        : `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+      const duration = weatherCurrent ? WEATHER_INTERVAL : FIRST_WEATHER_DELAY;
+      const progress = Math.min(100, Math.max(0, (1 - left / duration) * 100));
+      document.getElementById('weatherProgress').style.width = progress + '%';
+    }
+    renderSpecialWeather();
+    setInterval(updateWeatherTimer, 250);
+
+    // --- 랜덤 이벤트: 2시간 주기 / 20분 진행 / 확률 가중치 ---
+    const RANDOM_EVENT_CYCLE = 2 * 60 * 60 * 1000;
+    const RANDOM_EVENT_DURATION = 20 * 60 * 1000;
+    const RANDOM_EVENT_STORAGE_KEY = 'highway_random_event_schedule_v1';
+    const RANDOM_EVENT_TYPES = [
+      { name: '코인 2배 이벤트', icon: '🪙', multiplier: 2, weight: 35, desc: '코인 획득량이 2배가 됩니다!' },
+      { name: '코인 3배 이벤트', icon: '💰', multiplier: 3, weight: 15, desc: '코인 획득량이 3배가 됩니다!' },
+      { name: '코인 1.5배 이벤트', icon: '✨', multiplier: 1.5, weight: 25, desc: '코인 획득량이 1.5배가 됩니다!' },
+      { name: '대박 코인 이벤트', icon: '🎉', multiplier: 5, weight: 5, desc: '코인 획득량이 5배가 됩니다!' },
+      { name: '연료 절약 이벤트', icon: '⛽', multiplier: 1, weight: 20, desc: '특별 이벤트가 진행 중입니다. 코인 보너스는 없어요!' }
+    ];
+    let randomEventState;
+    try { randomEventState = JSON.parse(localStorage.getItem(RANDOM_EVENT_STORAGE_KEY) || 'null'); } catch (e) { randomEventState = null; }
+    if (!randomEventState || !Number.isFinite(randomEventState.nextStartAt)) {
+      randomEventState = { activeUntil: 0, nextStartAt: Date.now() + RANDOM_EVENT_CYCLE, eventIndex: -1 };
+      localStorage.setItem(RANDOM_EVENT_STORAGE_KEY, JSON.stringify(randomEventState));
+    }
+    let activeRandomEvent = null;
+    function chooseRandomEvent() {
+      const totalWeight = RANDOM_EVENT_TYPES.reduce((sum, item) => sum + item.weight, 0);
+      let roll = Math.random() * totalWeight;
+      for (let i = 0; i < RANDOM_EVENT_TYPES.length; i++) {
+        roll -= RANDOM_EVENT_TYPES[i].weight;
+        if (roll < 0) return i;
+      }
+      return 0;
+    }
+    function startRandomEvent() {
+      const index = chooseRandomEvent();
+      activeRandomEvent = RANDOM_EVENT_TYPES[index];
+      randomEventState.eventIndex = index;
+      randomEventState.activeUntil = Date.now() + RANDOM_EVENT_DURATION;
+      randomEventState.nextStartAt = Date.now() + RANDOM_EVENT_CYCLE;
+      localStorage.setItem(RANDOM_EVENT_STORAGE_KEY, JSON.stringify(randomEventState));
+      document.getElementById('randomEventIcon').textContent = activeRandomEvent.icon;
+      document.getElementById('randomEventStatus').textContent = `${activeRandomEvent.name} 진행 중 · ${activeRandomEvent.desc}`;
+      document.getElementById('randomEventCountdownLabel').textContent = '이벤트 종료까지';
+      document.getElementById('randomEventPanel').classList.add('border-fuchsia-300');
+    }
+    function updateRandomEventTimer() {
+      const now = Date.now();
+      // 일정은 절대 시각으로 저장하므로 창을 닫아도 이벤트 주기가 진행됩니다.
+      if (randomEventState.activeUntil > 0 && now < randomEventState.activeUntil) {
+        activeRandomEvent = RANDOM_EVENT_TYPES[randomEventState.eventIndex] || null;
+      } else {
+        activeRandomEvent = null;
+        if (randomEventState.activeUntil > 0 && now >= randomEventState.activeUntil) {
+          randomEventState.activeUntil = 0;
+          randomEventState.eventIndex = -1;
+        }
+        // 오프라인 중 여러 회차가 지나갔다면 다음 미래 회차까지 건너뜁니다.
+        while (now >= randomEventState.nextStartAt + RANDOM_EVENT_DURATION) {
+          randomEventState.nextStartAt += RANDOM_EVENT_CYCLE;
+        }
+        // 현재 시간이 예약된 20분 이벤트 구간 안이면 저장된 회차 이벤트를 이어서 표시합니다.
+        if (now >= randomEventState.nextStartAt && now < randomEventState.nextStartAt + RANDOM_EVENT_DURATION) {
+          if (randomEventState.eventIndex < 0) randomEventState.eventIndex = chooseRandomEvent();
+          randomEventState.activeUntil = randomEventState.nextStartAt + RANDOM_EVENT_DURATION;
+          activeRandomEvent = RANDOM_EVENT_TYPES[randomEventState.eventIndex] || null;
+        }
+        if (now >= randomEventState.nextStartAt + RANDOM_EVENT_DURATION) {
+          randomEventState.nextStartAt += RANDOM_EVENT_CYCLE;
+        }
+        localStorage.setItem(RANDOM_EVENT_STORAGE_KEY, JSON.stringify(randomEventState));
+      }
+      const isActive = !!activeRandomEvent && now < randomEventState.activeUntil;
+      const target = isActive ? randomEventState.activeUntil : randomEventState.nextStartAt;
+      const left = Math.max(0, target - now);
+      const seconds = Math.ceil(left / 1000);
+      const hh = Math.floor(seconds / 3600), mm = Math.floor((seconds % 3600) / 60), ss = seconds % 60;
+      document.getElementById('randomEventCountdown').textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+      document.getElementById('randomEventCountdownLabel').textContent = isActive ? '이벤트 종료까지' : '이벤트 시작까지';
+      document.getElementById('randomEventIcon').textContent = isActive ? activeRandomEvent.icon : '🎁';
+      document.getElementById('randomEventStatus').textContent = isActive ? `${activeRandomEvent.name} 진행 중 · ${activeRandomEvent.desc}` : '다음 랜덤 이벤트를 기다리는 중';
+      document.getElementById('randomEventPanel').classList.toggle('border-fuchsia-300', isActive);
+      const phaseStart = isActive ? randomEventState.activeUntil - RANDOM_EVENT_DURATION : randomEventState.nextStartAt - (RANDOM_EVENT_CYCLE - RANDOM_EVENT_DURATION);
+      const phaseDuration = isActive ? RANDOM_EVENT_DURATION : RANDOM_EVENT_CYCLE - RANDOM_EVENT_DURATION;
+      const progress = Math.max(0, Math.min(100, (1 - left / phaseDuration) * 100));
+      document.getElementById('randomEventProgress').style.width = progress + '%';
+    }
+
+    function getRandomEventCoinMultiplier() {
+      return activeRandomEvent && Date.now() < randomEventState.activeUntil ? activeRandomEvent.multiplier : 1;
+    }
+    setInterval(updateRandomEventTimer, 250);
+    updateRandomEventTimer();
+
     // --- 1. ROUTE PRESETS (37 ROUTES) ---
     const ROUTE_DATA = [
       {
@@ -2114,7 +2305,7 @@
 
         const distToPlayer = Math.hypot(pxCenter - c.x, pyCenter - c.y);
         if (distToPlayer < c.radius + player.height / 2) {
-          const earned = Number(((1 + (equipped.coinBonus || 0)) * (equipped.coinMultiplier || 1)).toFixed(2));
+          const earned = Number(((1 + (equipped.coinBonus || 0)) * (equipped.coinMultiplier || 1) * getRandomEventCoinMultiplier()).toFixed(2));
           sessionCoins += earned;
           totalCoins += earned;
           saveUserData();
@@ -2529,6 +2720,7 @@
       resizeCanvas();
       setupPCControls();
       render();
+      updateWeatherTimer();
     };
   </script>
 </body>
