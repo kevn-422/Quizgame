@@ -1034,9 +1034,10 @@
         maxSpeed: 210,
         accel: 70,
         lives: 3,
-        perkText: '표준 밸런스 차량',
+        perkText: '코인 +1 · 코인 획득 +3%',
         icon: 'fa-car-side',
-        coinMultiplier: 1,
+        coinBonus: 1,
+        coinMultiplier: 1.03,
         hasMagnet: false
       },
       {
@@ -1047,9 +1048,10 @@
         maxSpeed: 225,
         accel: 80,
         lives: 3,
-        perkText: '빠른 acceleration 가속',
+        perkText: '코인 +2 · 코인 획득 +5%',
         icon: 'fa-car',
-        coinMultiplier: 1,
+        coinBonus: 2,
+        coinMultiplier: 1.05,
         hasMagnet: false
       },
       {
@@ -1057,25 +1059,27 @@
         name: '로드 SUV',
         price: 40,
         color: '#10b981',
-        maxSpeed: 215,
+        maxSpeed: 235,
         accel: 75,
         lives: 4,
-        perkText: '체력 +1 내구성 강화',
+        perkText: '코인 +2.5 · 코인 획득 +8% · 체력 +1',
         icon: 'fa-truck-monster',
-        coinMultiplier: 1,
+        coinBonus: 2.5,
+        coinMultiplier: 1.08,
         hasMagnet: false
       },
       {
         id: 'sports',
-        name: '스포츠카',
+        name: '노란 스포츠카',
         price: 70,
         color: '#f59e0b',
         maxSpeed: 245,
         accel: 100,
         lives: 3,
-        perkText: '고속주행 능률 향상',
+        perkText: '코인 +3 · 코인 획득 +10%',
         icon: 'fa-car-burst',
-        coinMultiplier: 1,
+        coinBonus: 3,
+        coinMultiplier: 1.10,
         hasMagnet: false
       },
       {
@@ -1083,12 +1087,13 @@
         name: '순찰 경찰차',
         price: 100,
         color: '#38bdf8',
-        maxSpeed: 235,
+        maxSpeed: 250,
         accel: 90,
         lives: 3,
-        perkText: '안정적인 순찰 차량',
+        perkText: '코인 +3.5 · 코인 획득 +12%',
         icon: 'fa-shield-halved',
-        coinMultiplier: 1,
+        coinBonus: 3.5,
+        coinMultiplier: 1.12,
         hasMagnet: false
       },
       {
@@ -1096,25 +1101,27 @@
         name: '옐로우 택시',
         price: 130,
         color: '#eab308',
-        maxSpeed: 230,
+        maxSpeed: 255,
         accel: 85,
         lives: 3,
-        perkText: '코인 획득량 +50% 보너스',
+        perkText: '코인 +4 · 코인 획득 +13.5%',
         icon: 'fa-taxi',
-        coinMultiplier: 1.5,
+        coinBonus: 4,
+        coinMultiplier: 1.135,
         hasMagnet: false
       },
       {
         id: 'supercar',
-        name: '레드 슈퍼카',
+        name: '빨간 슈퍼카',
         price: 180,
         color: '#dc2626',
         maxSpeed: 260,
         accel: 115,
         lives: 3,
-        perkText: '최고속도 260km/h 도달',
+        perkText: '코인 +4.5 · 코인 획득 +14%',
         icon: 'fa-gauge-high',
-        coinMultiplier: 1,
+        coinBonus: 4.5,
+        coinMultiplier: 1.14,
         hasMagnet: false
       },
       {
@@ -1122,12 +1129,13 @@
         name: 'KTX 하이퍼카',
         price: 250,
         color: '#0284c7',
-        maxSpeed: 280,
+        maxSpeed: 265,
         accel: 130,
         lives: 3,
-        perkText: '최고속도 280km/h 초고속',
+        perkText: '코인 +5 · 코인 획득 +15.5%',
         icon: 'fa-train-subway',
-        coinMultiplier: 1,
+        coinBonus: 5,
+        coinMultiplier: 1.155,
         hasMagnet: false
       },
       {
@@ -1135,12 +1143,13 @@
         name: '사이버 트럭',
         price: 350,
         color: '#94a3b8',
-        maxSpeed: 240,
+        maxSpeed: 275,
         accel: 95,
         lives: 5,
-        perkText: '장갑 강화 (체력 +2)',
+        perkText: '코인 +5.5 · 코인 획득 +15% · 장갑 강화 (체력 +2)',
         icon: 'fa-truck-pickup',
-        coinMultiplier: 1,
+        coinBonus: 5.5,
+        coinMultiplier: 1.15,
         hasMagnet: false
       },
       {
@@ -1151,8 +1160,9 @@
         maxSpeed: 275,
         accel: 120,
         lives: 4,
-        perkText: '코인 2배 획득 + 자석',
+        perkText: '코인 +6 · 코인 2배 획득 + 자석',
         icon: 'fa-crown',
+        coinBonus: 6,
         coinMultiplier: 2,
         hasMagnet: true
       },
@@ -1161,12 +1171,13 @@
         name: '전기차 아이오닉 5',
         price: 650,
         color: '#38bdf8',
-        maxSpeed: 250,
+        maxSpeed: 300,
         accel: 108,
         lives: 3,
-        perkText: '전기차 · 배터리 효율 우수',
+        perkText: '코인 +6.5 · 코인 획득 +18% · 전기차',
         icon: 'fa-car-side',
-        coinMultiplier: 1,
+        coinBonus: 6.5,
+        coinMultiplier: 1.18,
         hasMagnet: false,
         isElectric: true,
         energyUse: 0.23
@@ -1176,12 +1187,13 @@
         name: '전기차 EV6',
         price: 780,
         color: '#a78bfa',
-        maxSpeed: 265,
+        maxSpeed: 335,
         accel: 120,
         lives: 3,
-        perkText: '전기차 · 가속 성능 강화',
+        perkText: '코인 +7 · 코인 획득 +19% · 전기차',
         icon: 'fa-car',
-        coinMultiplier: 1.15,
+        coinBonus: 7,
+        coinMultiplier: 1.19,
         hasMagnet: false,
         isElectric: true,
         energyUse: 0.25
@@ -1191,12 +1203,13 @@
         name: '전기차 모델 3',
         price: 950,
         color: '#f8fafc',
-        maxSpeed: 280,
+        maxSpeed: 350,
         accel: 132,
         lives: 4,
-        perkText: '전기차 · 고속 주행 특화',
+        perkText: '코인 +9 · 코인 획득량 1.5배 · 전기차',
         icon: 'fa-bolt',
-        coinMultiplier: 1.2,
+        coinBonus: 9,
+        coinMultiplier: 1.5,
         hasMagnet: false,
         isElectric: true,
         energyUse: 0.27
@@ -1209,15 +1222,19 @@
         maxSpeed: 400,
         accel: 145,
         lives: 5,
-        perkText: '최대 운행거리 3,000km · 장거리 특화',
+        perkText: '코인 +10 · 코인 획득 +20% · 최대 운행거리 3,000km',
         icon: 'fa-gem',
-        coinMultiplier: 1.5,
+        coinBonus: 10,
+        coinMultiplier: 1.20,
         hasMagnet: false,
         isElectric: true,
         energyUse: 100 / 3000,
         rangeKm: 3000
       }
     ];
+
+    // 차량 목록을 최고속도 기준 내림차순으로 정렬 (빠른 차량이 먼저 표시됨)
+    CAR_DATABASE.sort((a, b) => b.maxSpeed - a.maxSpeed);
 
     // --- 3. SAVED STATE & LOCALSTORAGE ---
     let selectedRouteIndex = 0;
@@ -2069,7 +2086,7 @@
 
         const distToPlayer = Math.hypot(pxCenter - c.x, pyCenter - c.y);
         if (distToPlayer < c.radius + player.height / 2) {
-          const earned = Math.round(1 * equipped.coinMultiplier);
+          const earned = Number(((1 + (equipped.coinBonus || 0)) * (equipped.coinMultiplier || 1)).toFixed(2));
           sessionCoins += earned;
           totalCoins += earned;
           saveUserData();
