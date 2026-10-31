@@ -197,7 +197,7 @@
         <!-- Left: Route List (15 routes) -->
         <div class="col-span-12 flex flex-col gap-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 25개 주요 코스 · 전체 경유지 표시)
+            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 35개 주요 코스 · 전체 경유지 표시)
           </div>
           <div id="routeListContainer" class="flex flex-col gap-3 w-full">
             <!-- Dynamic Route Cards -->
@@ -359,7 +359,7 @@
   </main>
 
   <script>
-    // --- 1. ROUTE PRESETS (30 ROUTES) ---
+    // --- 1. ROUTE PRESETS (35 ROUTES) ---
     const ROUTE_DATA = [
       {
         id: 'incheon',
@@ -861,6 +861,77 @@
           { name: '선재대교', dist: 88 },
           { name: '선재마을', dist: 98 },
           { name: '선재도', dist: 105 }
+        ]
+      },
+      {
+        id: 'paju',
+        title: '서울 ➔ 파주',
+        totalDist: 65,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '은평', dist: 12 },
+          { name: '고양', dist: 25 },
+          { name: '일산', dist: 35 },
+          { name: '운정', dist: 48 },
+          { name: '금촌', dist: 57 },
+          { name: '파주', dist: 65 }
+        ]
+      },
+      {
+        id: 'wonju',
+        title: '서울 ➔ 원주',
+        totalDist: 125,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 18 },
+          { name: '남양주', dist: 32 },
+          { name: '양평', dist: 62 },
+          { name: '여주', dist: 88 },
+          { name: '문막', dist: 112 },
+          { name: '원주', dist: 125 }
+        ]
+      },
+      {
+        id: 'chungju',
+        title: '서울 ➔ 충주',
+        totalDist: 145,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '하남', dist: 18 },
+          { name: '이천', dist: 55 },
+          { name: '장호원', dist: 88 },
+          { name: '감곡', dist: 108 },
+          { name: '앙성', dist: 125 },
+          { name: '충주', dist: 145 }
+        ]
+      },
+      {
+        id: 'jecheon',
+        title: '서울 ➔ 제천',
+        totalDist: 175,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '하남', dist: 18 },
+          { name: '이천', dist: 55 },
+          { name: '여주', dist: 85 },
+          { name: '원주', dist: 130 },
+          { name: '신림', dist: 150 },
+          { name: '제천', dist: 175 }
+        ]
+      },
+      {
+        id: 'namwon',
+        title: '서울 ➔ 남원',
+        totalDist: 315,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '천안', dist: 82 },
+          { name: '대전', dist: 145 },
+          { name: '금산', dist: 185 },
+          { name: '무주', dist: 225 },
+          { name: '장수', dist: 275 },
+          { name: '남원', dist: 315 }
         ]
       }
     ];
