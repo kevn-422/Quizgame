@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>전국 고속도로 차 피하기 (PC 가로 화면 모드)</title>
+  <title>전국 고속도로 차 피하기 - 게임 그래픽 배경</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -138,6 +138,17 @@
           <i class="fa-solid fa-heart"></i>
         </div>
 
+        <!-- Fuel / Battery HUD -->
+        <div class="min-w-[105px] bg-slate-950/80 border border-emerald-500/40 rounded-lg px-2 py-1">
+          <div class="flex justify-between gap-2 text-[10px] font-bold mb-1">
+            <span id="fuelLabel" class="text-emerald-300">연료</span>
+            <span id="fuelValue" class="text-white">100%</span>
+          </div>
+          <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div id="fuelBar" class="h-full bg-emerald-400 rounded-full" style="width:100%"></div>
+          </div>
+        </div>
+
         <!-- Realtime Timer -->
         <div class="font-arcade text-emerald-400 font-black text-base md:text-xl tracking-wider min-w-[110px] text-right drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" id="timerDisplay">
           00:00.00
@@ -174,7 +185,7 @@
             <h1 class="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400">
               전국 고속도로 차 피하기 (PC 가로 화면 모드)
             </h1>
-            <p class="text-xs text-slate-400">총 30개 노선과 10종의 차량을 즐겨보세요!</p>
+            <p class="text-xs text-slate-400">총 37개 노선과 13종의 차량을 즐겨보세요!</p>
           </div>
         </div>
 
@@ -187,7 +198,7 @@
 
           <!-- Open Garage Button -->
           <button id="openGarageBtn" class="cursor-pointer px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
-            <i class="fa-solid fa-warehouse"></i> 차고 상점 (10종)
+            <i class="fa-solid fa-warehouse"></i> 차고 상점 (13종)
           </button>
         </div>
       </div>
@@ -197,7 +208,7 @@
         <!-- Left: Route List (15 routes) -->
         <div class="col-span-12 flex flex-col gap-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 35개 주요 코스 · 전체 경유지 표시)
+            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 37개 주요 코스 · 전체 경유지 표시)
           </div>
           <div id="routeListContainer" class="flex flex-col gap-3 w-full">
             <!-- Dynamic Route Cards -->
@@ -231,6 +242,7 @@
               <div><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-cyan-300">← / A</kbd> 위쪽 차선</div>
               <div><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-cyan-300">→ / D</kbd> 아래쪽 차선</div>
               <div class="col-span-2"><kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-emerald-300">Spacebar</kbd> 순간 부스터</div>
+              <div class="col-span-2"><kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-emerald-300">F</kbd> 연료통 / 배터리 충전 팩 사용</div>
             </div>
           </div>
         </div>
@@ -249,7 +261,7 @@
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-warehouse text-amber-400 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-bold text-white">차고 상점 (총 10종의 차량)</h2>
+            <h2 class="text-lg font-bold text-white">차고 상점 (총 13종의 차량)</h2>
             <p class="text-xs text-slate-400">주행 중 코인을 모아 차량을 구매하고 특수 스킬을 활용하세요.</p>
           </div>
         </div>
@@ -265,8 +277,23 @@
       </div>
 
       <!-- Car Grid (Horizontal Widescreen 2 Rows) -->
-      <div id="carGrid" class="grid grid-cols-2 gap-3 my-auto max-h-[340px] overflow-y-auto pr-2">
+      <div id="carGrid" class="grid grid-cols-2 gap-3 my-2 max-h-[300px] overflow-y-auto pr-2">
         <!-- Dynamic Cars List -->
+      </div>
+
+      <!-- Fuel / EV Charging Item Shop -->
+      <div class="bg-slate-900 border border-emerald-500/40 rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-2xl">⛽</div>
+          <div>
+            <div class="text-sm font-black text-white">연료통 / 급속 충전 팩</div>
+            <div class="text-[11px] text-slate-300">사용 시 연료 또는 전기차 배터리 40% 충전 · 보유 수량: <strong id="fuelPackCount" class="text-emerald-300">0</strong>개</div>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button id="buyFuelBtn" class="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs">구매 · 35 코인</button>
+          <button id="useFuelBtn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs">사용 (F)</button>
+        </div>
       </div>
 
       <!-- Close Button -->
@@ -359,7 +386,7 @@
   </main>
 
   <script>
-    // --- 1. ROUTE PRESETS (35 ROUTES) ---
+    // --- 1. ROUTE PRESETS (37 ROUTES) ---
     const ROUTE_DATA = [
       {
         id: 'incheon',
@@ -933,6 +960,43 @@
           { name: '장수', dist: 275 },
           { name: '남원', dist: 315 }
         ]
+      },
+      {
+        id: 'beijing',
+        title: '서울 ➔ 베이징 (가상 해상대교)',
+        totalDist: 980,
+        isSeaBridge: true,
+        seaBridgeStartDist: 260,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '인천', dist: 45 },
+          { name: '인천국제항', dist: 65 },
+          { name: '서해 해상대교 진입', dist: 260 },
+          { name: '서해 해상대교 구간 1', dist: 390 },
+          { name: '서해 해상대교 구간 2', dist: 540 },
+          { name: '중국 연안 연결구간', dist: 690 },
+          { name: '톈진', dist: 850 },
+          { name: '랑팡', dist: 930 },
+          { name: '베이징', dist: 980 }
+        ]
+      },
+      {
+        id: 'pyongyang',
+        title: '서울 ➔ 평양 (가상 해상대교)',
+        totalDist: 310,
+        isSeaBridge: true,
+        seaBridgeStartDist: 95,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '고양', dist: 25 },
+          { name: '파주', dist: 55 },
+          { name: '서해 해상대교 진입', dist: 95 },
+          { name: '해상대교 구간 1', dist: 150 },
+          { name: '해상대교 구간 2', dist: 205 },
+          { name: '북측 연결구간', dist: 245 },
+          { name: '개성', dist: 275 },
+          { name: '평양', dist: 310 }
+        ]
       }
     ];
 
@@ -998,10 +1062,10 @@
         maxSpeed: 235,
         accel: 90,
         lives: 3,
-        perkText: '자동 코인 흡입 자석',
+        perkText: '안정적인 순찰 차량',
         icon: 'fa-shield-halved',
         coinMultiplier: 1,
-        hasMagnet: true
+        hasMagnet: false
       },
       {
         id: 'taxi',
@@ -1067,6 +1131,51 @@
         icon: 'fa-crown',
         coinMultiplier: 2,
         hasMagnet: true
+      },
+      {
+        id: 'ioniq5',
+        name: '전기차 아이오닉 5',
+        price: 650,
+        color: '#38bdf8',
+        maxSpeed: 250,
+        accel: 108,
+        lives: 3,
+        perkText: '전기차 · 배터리 효율 우수',
+        icon: 'fa-car-side',
+        coinMultiplier: 1,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.23
+      },
+      {
+        id: 'ev6',
+        name: '전기차 EV6',
+        price: 780,
+        color: '#a78bfa',
+        maxSpeed: 265,
+        accel: 120,
+        lives: 3,
+        perkText: '전기차 · 가속 성능 강화',
+        icon: 'fa-car',
+        coinMultiplier: 1.15,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.25
+      },
+      {
+        id: 'model3',
+        name: '전기차 모델 3',
+        price: 950,
+        color: '#f8fafc',
+        maxSpeed: 280,
+        accel: 132,
+        lives: 4,
+        perkText: '전기차 · 고속 주행 특화',
+        icon: 'fa-bolt',
+        coinMultiplier: 1.2,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.27
       }
     ];
 
@@ -1075,16 +1184,64 @@
     let totalCoins = parseInt(localStorage.getItem('highway_coins_pc') || '0', 10);
     let unlockedCars = JSON.parse(localStorage.getItem('highway_unlocked_pc') || '["compact"]');
     let equippedCarId = localStorage.getItem('highway_equipped_pc') || 'compact';
+    let fuelLevel = Math.max(0, Math.min(100, Number(localStorage.getItem('highway_fuel_pc') ?? 100)));
+    let fuelPacks = Math.max(0, parseInt(localStorage.getItem('highway_fuel_packs_pc') || '0', 10));
 
     function saveUserData() {
       localStorage.setItem('highway_coins_pc', totalCoins.toString());
       localStorage.setItem('highway_unlocked_pc', JSON.stringify(unlockedCars));
       localStorage.setItem('highway_equipped_pc', equippedCarId);
+      localStorage.setItem('highway_fuel_pc', String(fuelLevel));
+      localStorage.setItem('highway_fuel_packs_pc', String(fuelPacks));
       updateCoinsUI();
+      updateFuelUI();
     }
 
     function getEquippedCar() {
       return CAR_DATABASE.find(c => c.id === equippedCarId) || CAR_DATABASE[0];
+    }
+
+    function updateFuelUI() {
+      const equipped = getEquippedCar();
+      const label = equipped.isElectric ? '배터리' : '연료';
+      const bar = document.getElementById('fuelBar');
+      const value = document.getElementById('fuelValue');
+      const name = document.getElementById('fuelLabel');
+      const count = document.getElementById('fuelPackCount');
+      if (name) name.textContent = label;
+      if (value) value.textContent = `${Math.ceil(fuelLevel)}%`;
+      if (bar) {
+        bar.style.width = `${fuelLevel}%`;
+        bar.className = `h-full rounded-full ${fuelLevel <= 20 ? 'bg-red-500' : fuelLevel <= 45 ? 'bg-amber-400' : 'bg-emerald-400'}`;
+      }
+      if (count) count.textContent = fuelPacks;
+    }
+
+    function buyFuelPack() {
+      const price = 35;
+      if (totalCoins < price) {
+        alert('코인이 부족합니다. 주행 중 코인을 모아주세요.');
+        return;
+      }
+      totalCoins -= price;
+      fuelPacks += 1;
+      saveUserData();
+      alert('연료통 / 급속 충전 팩을 구매했습니다! F 키 또는 사용 버튼으로 충전하세요.');
+    }
+
+    function useFuelPack() {
+      if (fuelPacks <= 0) {
+        if (gameState !== 'PLAYING') alert('보유한 연료통 / 충전 팩이 없습니다. 상점에서 구매하세요.');
+        return;
+      }
+      if (fuelLevel >= 100) {
+        if (gameState !== 'PLAYING') alert('연료 또는 배터리가 이미 가득 찼습니다.');
+        return;
+      }
+      fuelPacks -= 1;
+      fuelLevel = Math.min(100, fuelLevel + 40);
+      saveUserData();
+      addFloatingText(player.x + 25, player.y - 10, '+40% 충전', '#34d399');
     }
 
     // --- 4. AUDIO SYNTHESIS ENGINE ---
@@ -1274,6 +1431,7 @@
       document.getElementById('equippedCarName').textContent = equipped.name;
       document.getElementById('equippedCarPerk').textContent = equipped.perkText;
       document.getElementById('equippedCarIcon').style.color = equipped.color;
+      updateFuelUI();
     }
 
     function renderRouteList() {
@@ -1369,6 +1527,8 @@
           renderGarageGrid();
         });
       });
+
+      updateFuelUI();
 
       document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1489,6 +1649,7 @@
         if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
         if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
         if (e.code === 'Space') keys.boost = true;
+        if ((e.key === 'f' || e.key === 'F') && !e.repeat) useFuelPack();
       });
 
       window.addEventListener('keyup', (e) => {
@@ -1502,6 +1663,13 @@
 
     // --- 9. START & RESTART GAME ---
     function startGame() {
+      if (fuelLevel <= 0) {
+        alert('연료 또는 배터리가 없습니다! 차고 상점에서 연료통 / 급속 충전 팩을 구매해 충전하세요.');
+        renderGarageGrid();
+        garageModal.classList.remove('hidden');
+        updateFuelUI();
+        return;
+      }
       audio.init();
 
       const equipped = getEquippedCar();
@@ -1556,6 +1724,8 @@
 
     closeGarageBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
     garageDoneBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
+    document.getElementById('buyFuelBtn').addEventListener('click', buyFuelPack);
+    document.getElementById('useFuelBtn').addEventListener('click', useFuelPack);
 
     changeRouteBtn.addEventListener('click', () => {
       gameOverOverlay.classList.add('hidden');
@@ -1654,6 +1824,15 @@
       const activeRoute = ROUTE_DATA[selectedRouteIndex];
       const distanceGained = (player.speed / 3600) * dt * 28;
       currentDistance += distanceGained;
+      // 연료/배터리 100% 기준 약 2,000km 주행 가능
+      const fuelUsePerKm = 100 / 2000;
+      fuelLevel = Math.max(0, fuelLevel - distanceGained * fuelUsePerKm);
+      updateFuelUI();
+      if (fuelLevel <= 0) {
+        saveUserData();
+        triggerGameOver(equipped.isElectric ? '배터리가 모두 소모되어 주행이 중단되었습니다.' : '연료가 모두 소모되어 주행이 중단되었습니다.');
+        return;
+      }
       updateProgressUI();
 
       if (currentDistance >= activeRoute.totalDist) {
@@ -1792,6 +1971,130 @@
       victoryOverlay.classList.remove('hidden');
     }
 
+
+    // --- 픽셀 아트풍 고속도로 배경 ---
+    function drawScenicHighwayBackground() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const scroll = roadOffset;
+
+      // 하늘 그라데이션
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#55b9f2');
+      sky.addColorStop(0.52, '#b8e8ff');
+      sky.addColorStop(1, '#e5f6ff');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      // 햇빛과 구름
+      ctx.fillStyle = 'rgba(255, 244, 170, 0.95)';
+      ctx.beginPath();
+      ctx.arc(w * 0.82, Math.max(42, roadTop * 0.34), 27, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      for (let i = 0; i < 4; i++) {
+        const cx = ((i * 230 - scroll * 0.12) % (w + 260) + (w + 260)) % (w + 260) - 100;
+        const cy = 28 + (i % 2) * 34;
+        ctx.fillRect(cx, cy + 10, 72, 18);
+        ctx.fillRect(cx + 12, cy, 28, 28);
+        ctx.fillRect(cx + 35, cy + 3, 25, 25);
+      }
+
+      // 먼 산 능선
+      ctx.fillStyle = '#78b88b';
+      ctx.beginPath();
+      ctx.moveTo(0, roadTop - 2);
+      for (let x = 0; x <= w + 40; x += 40) {
+        const y = roadTop * 0.48 + Math.sin((x + scroll * 0.12) * 0.009) * 17 + Math.cos(x * 0.021) * 9;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, roadTop);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#4f9b70';
+      ctx.beginPath();
+      ctx.moveTo(0, roadTop);
+      for (let x = 0; x <= w + 40; x += 32) {
+        const y = roadTop * 0.68 + Math.sin((x + scroll * 0.22) * 0.014) * 12;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, roadTop);
+      ctx.closePath();
+      ctx.fill();
+
+      // 위쪽 풍경: 나무와 작은 건물들이 이동하는 효과
+      const sceneryStep = 118;
+      for (let x = -sceneryStep; x < w + sceneryStep; x += sceneryStep) {
+        const sx = x - (scroll * 0.48 % sceneryStep);
+        const treeY = Math.max(roadTop * 0.72, roadTop - 48);
+        const treeH = 24 + (Math.abs(Math.floor(x / sceneryStep)) % 3) * 8;
+        ctx.fillStyle = '#76533a';
+        ctx.fillRect(sx + 23, treeY + treeH * 0.45, 7, treeH * 0.65);
+        ctx.fillStyle = '#237a50';
+        ctx.fillRect(sx + 9, treeY, 34, treeH * 0.58);
+        ctx.fillStyle = '#39a96b';
+        ctx.fillRect(sx + 15, treeY - 7, 22, 13);
+        if (Math.floor(x / sceneryStep) % 3 === 0) {
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(sx + 65, treeY + 8, 32, 28);
+          ctx.fillStyle = '#dbeafe';
+          ctx.fillRect(sx + 70, treeY + 14, 8, 8);
+          ctx.fillRect(sx + 84, treeY + 14, 8, 8);
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(sx + 78, treeY + 24, 8, 12);
+        }
+      }
+
+      // 아래쪽 초록 들판과 나무 그림자
+      ctx.fillStyle = '#72bd72';
+      ctx.fillRect(0, roadBottom, w, h - roadBottom);
+      ctx.fillStyle = '#4b995d';
+      for (let x = -60; x < w + 80; x += 90) {
+        const sx = x - (scroll * 0.62 % 90);
+        ctx.fillRect(sx, roadBottom + 18, 5, Math.max(8, h - roadBottom - 18));
+        ctx.fillStyle = '#2e8552';
+        ctx.fillRect(sx - 10, roadBottom + 4, 25, 18);
+        ctx.fillStyle = '#4b995d';
+      }
+
+      // 도로 갓길과 아스팔트
+      ctx.fillStyle = '#d1d5db';
+      ctx.fillRect(0, roadTop - 7, w, 7);
+      ctx.fillRect(0, roadBottom, w, 7);
+      ctx.fillStyle = '#737b87';
+      ctx.fillRect(0, roadTop, w, roadBottom - roadTop);
+      ctx.fillStyle = '#4b5563';
+      ctx.fillRect(0, roadTop + 5, w, roadBottom - roadTop - 10);
+
+      // 도로 가장자리 반사판
+      for (let x = -30 - (scroll % 76); x < w + 76; x += 76) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(x, roadTop - 5, 22, 5);
+        ctx.fillRect(x, roadBottom + 2, 22, 5);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(x + 13, roadTop - 5, 9, 5);
+        ctx.fillRect(x + 13, roadBottom + 2, 9, 5);
+      }
+
+      // 가드레일
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(0, roadTop - 12, w, 4);
+      ctx.fillRect(0, roadBottom + 9, w, 4);
+      ctx.fillStyle = '#64748b';
+      for (let x = -20 - (scroll % 90); x < w + 90; x += 90) {
+        ctx.fillRect(x, roadTop - 15, 5, 12);
+        ctx.fillRect(x, roadBottom + 8, 5, 12);
+      }
+
+      // 도로 표면의 은은한 질감
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      for (let x = -100 - (scroll % 130); x < w + 130; x += 130) {
+        ctx.fillRect(x, roadTop + 12, 45, 2);
+        ctx.fillRect(x + 55, roadBottom - 14, 28, 2);
+      }
+    }
+
     // --- 12. HORIZONTAL RENDERER WITH SEA BRIDGE GIMMICK ---
     function render() {
       const activeRoute = ROUTE_DATA[selectedRouteIndex];
@@ -1836,26 +2139,8 @@
           ctx.fill();
         }
       } else {
-        // Standard Highway
-        ctx.fillStyle = '#070a13';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(0, 0, canvas.width, roadTop);
-        ctx.fillRect(0, roadBottom, canvas.width, canvas.height - roadBottom);
-
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(0, roadTop, canvas.width, roadBottom - roadTop);
-
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(0, roadTop - 4, canvas.width, 4);
-        ctx.fillRect(0, roadBottom, canvas.width, 4);
-
-        ctx.fillStyle = '#64748b';
-        for (let x = -40 + roadOffset; x < canvas.width; x += 80) {
-          ctx.fillRect(x, roadTop - 18, 8, 8);
-          ctx.fillRect(x, roadBottom + 10, 8, 8);
-        }
+        // 게임 그래픽 스타일의 일반 고속도로 풍경
+        drawScenicHighwayBackground();
       }
 
       // Dashed Horizontal Lane Dividers
