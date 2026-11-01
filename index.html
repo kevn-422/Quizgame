@@ -184,6 +184,7 @@
   <main id="canvasContainer" class="relative w-full max-w-6xl my-auto flex-1 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-700/80 shadow-2xl bg-slate-950 my-2">
     <canvas id="gameCanvas" class="w-full h-full block rounded-2xl z-0"></canvas>
     <div id="weatherVisual" aria-hidden="true"></div>
+    <button id="enterRestStopRoad" class="hidden absolute bottom-4 right-4 z-30 rounded-xl border-2 border-emerald-300 bg-emerald-700/95 px-5 py-3 font-black text-white shadow-xl hover:bg-emerald-600">↗ 🏪 휴게소 진입</button>
 
     <!-- OVERLAY 1: START & ROUTE SELECT SCREEN -->
     <div id="startOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-6 z-20 pointer-events-auto">
@@ -197,7 +198,7 @@
             <h1 class="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400">
               전국 고속도로 차 피하기 (PC 가로 화면 모드)
             </h1>
-            <p class="text-xs text-slate-400">총 37개 노선과 16종의 차량을 즐겨보세요!</p>
+            <p class="text-xs text-slate-400">총 61개 노선과 16종의 차량을 즐겨보세요!</p>
           </div>
         </div>
 
@@ -220,7 +221,7 @@
         <!-- Left: Route List (15 routes) -->
         <div class="col-span-12 flex flex-col gap-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 37개 주요 코스 · 전체 경유지 표시)
+            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 61개 주요 코스 · 전체 경유지 표시)
           </div>
           <div id="routeListContainer" class="flex flex-col gap-3 w-full">
             <!-- Dynamic Route Cards -->
@@ -447,8 +448,24 @@
     <p class="mt-1 text-[10px] text-slate-500">2시간마다 무작위 이벤트가 시작되며, 한 번 시작하면 20분 동안 진행됩니다.</p>
   </section>
 
+  <!-- 휴게소 시스템 -->
+  <div id="restStopModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl border border-emerald-400/50 bg-slate-900 p-5 shadow-2xl">
+      <div class="text-center text-4xl mb-2">🏪</div>
+      <h2 class="text-center text-xl font-black text-white">고속도로 휴게소 도착!</h2>
+      <p id="restStopMessage" class="text-center text-sm text-slate-300 mt-2">잠시 쉬어가세요. 필요한 서비스를 선택하세요.</p>
+      <div class="grid grid-cols-1 gap-2 mt-5">
+        <button id="restFuel30" class="rounded-xl bg-emerald-700 hover:bg-emerald-600 px-4 py-3 text-white font-bold">⛽ 연료 / 배터리 30% 충전 · 40코인</button>
+        <button id="restFuelFull" class="rounded-xl bg-cyan-700 hover:bg-cyan-600 px-4 py-3 text-white font-bold">🔋 연료 / 배터리 완충 · 100코인</button>
+        <button id="restSnack" class="rounded-xl bg-amber-700 hover:bg-amber-600 px-4 py-3 text-white font-bold">🥪 간식 구매 · 20코인 (주행 코인 +10% 보너스)</button>
+        <button id="restContinue" class="rounded-xl bg-slate-700 hover:bg-slate-600 px-4 py-3 text-white font-bold">🚗 휴게소 출발하기</button>
+      </div>
+      <p class="text-center text-[11px] text-slate-500 mt-3">약 100km 주행할 때마다 휴게소가 나타납니다.</p>
+    </div>
+  </div>
+
   <script>
-    // --- 특별 상황 시스템: 모든 37개 노선에 공통 적용 ---
+    // --- 특별 상황 시스템: 모든 61개 노선에 공통 적용 ---
     const WEATHER_TYPES = [
       { name: '폭우', icon: '🌧️', cls: 'rain', desc: '강한 비가 내립니다. 안전 운전에 주의하세요!' },
       { name: '폭설', icon: '❄️', cls: 'snow', desc: '눈이 내리는 겨울 도로입니다.' },
@@ -601,7 +618,7 @@
     setInterval(updateRandomEventTimer, 250);
     updateRandomEventTimer();
 
-    // --- 1. ROUTE PRESETS (37 ROUTES) ---
+    // --- 1. ROUTE PRESETS (61 ROUTES) ---
     const ROUTE_DATA = [
       {
         id: 'incheon',
@@ -1212,10 +1229,398 @@
           { name: '개성', dist: 275 },
           { name: '평양', dist: 310 }
         ]
+      },
+      {
+        id: 'jeju_okinawa',
+        title: '제주도 ➔ 오키나와 (가상 해상대교)',
+        totalDist: 820,
+        isSeaBridge: true,
+        seaBridgeStartDist: 35,
+        waypoints: [
+          { name: '제주도', dist: 0 },
+          { name: '서귀포 해상대교 진입', dist: 35 },
+          { name: '동중국해 해상대교 1구간', dist: 220 },
+          { name: '동중국해 해상대교 2구간', dist: 430 },
+          { name: '아마미 해상 연결구간', dist: 610 },
+          { name: '나고', dist: 740 },
+          { name: '오키나와', dist: 820 }
+        ]
+      },
+      {
+        id: 'jeju_hanoi',
+        title: '제주도 ➔ 베트남 하노이 (가상 국제 해상대교 · 연료 3,000 이상만 가능)',
+        totalDist: 2650,
+        isSeaBridge: true,
+        seaBridgeStartDist: 45,
+        waypoints: [
+          { name: '제주도', dist: 0 },
+          { name: '제주 남부 해상대교 진입', dist: 45 },
+          { name: '동중국해 해상대교 1구간', dist: 420 },
+          { name: '중국 남부 해상 연결구간', dist: 950 },
+          { name: '하이난 연결구간', dist: 1480 },
+          { name: '베트남 북부 연결구간', dist: 2100 },
+          { name: '하이퐁', dist: 2480 },
+          { name: '하노이', dist: 2650 }
+        ]
+      },
+      {
+        id: 'seoul_osaka',
+        title: '서울 ➔ 오사카 (가상 국제 해상대교)',
+        totalDist: 950,
+        isSeaBridge: true,
+        seaBridgeStartDist: 120,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 45 },
+          { name: '대전', dist: 165 },
+          { name: '부산', dist: 390 },
+          { name: '부산 국제 해상대교 진입', dist: 430 },
+          { name: '대한해협 해상대교', dist: 570 },
+          { name: '쓰시마 연결구간', dist: 650 },
+          { name: '규슈 연결구간', dist: 760 },
+          { name: '고베', dist: 900 },
+          { name: '오사카', dist: 950 }
+        ]
+      },
+      {
+        id: 'seoul_tokyo',
+        title: '서울 ➔ 도쿄 (가상 국제 해상대교)',
+        totalDist: 1180,
+        isSeaBridge: true,
+        seaBridgeStartDist: 120,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 45 },
+          { name: '대전', dist: 165 },
+          { name: '대구', dist: 280 },
+          { name: '부산', dist: 390 },
+          { name: '부산 국제 해상대교 진입', dist: 430 },
+          { name: '대한해협 해상대교', dist: 570 },
+          { name: '쓰시마 연결구간', dist: 650 },
+          { name: '규슈 연결구간', dist: 760 },
+          { name: '히로시마', dist: 900 },
+          { name: '나고야', dist: 1080 },
+          { name: '도쿄', dist: 1180 }
+        ]
+      }
+      ,
+      {
+        id: 'seoul_chuncheon',
+        title: '서울 ➔ 춘천',
+        totalDist: 110,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 18 },
+          { name: '남양주', dist: 32 },
+          { name: '가평', dist: 65 },
+          { name: '강촌', dist: 88 },
+          { name: '춘천', dist: 110 }
+        ]
+      },
+      {
+        id: 'seoul_jeonju',
+        title: '서울 ➔ 전주',
+        totalDist: 230,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '안성', dist: 55 },
+          { name: '천안', dist: 85 },
+          { name: '공주', dist: 125 },
+          { name: '논산', dist: 165 },
+          { name: '익산', dist: 200 },
+          { name: '전주', dist: 230 }
+        ]
+      },
+      {
+        id: 'seoul_pohang',
+        title: '서울 ➔ 포항',
+        totalDist: 360,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '이천', dist: 55 },
+          { name: '충주', dist: 110 },
+          { name: '문경', dist: 165 },
+          { name: '김천', dist: 225 },
+          { name: '대구', dist: 290 },
+          { name: '영천', dist: 325 },
+          { name: '포항', dist: 360 }
+        ]
+      },
+      {
+        id: 'busan_gwangju',
+        title: '부산 ➔ 광주',
+        totalDist: 270,
+        waypoints: [
+          { name: '부산', dist: 0 },
+          { name: '창원', dist: 35 },
+          { name: '진주', dist: 85 },
+          { name: '사천', dist: 115 },
+          { name: '남해 연결 구간', dist: 150 },
+          { name: '순천', dist: 210 },
+          { name: '나주', dist: 245 },
+          { name: '광주', dist: 270 }
+        ]
+      },
+      {
+        id: 'daejeon_mokpo',
+        title: '대전 ➔ 목포',
+        totalDist: 220,
+        waypoints: [
+          { name: '대전', dist: 0 },
+          { name: '논산', dist: 45 },
+          { name: '익산', dist: 85 },
+          { name: '김제', dist: 115 },
+          { name: '정읍', dist: 150 },
+          { name: '영암', dist: 190 },
+          { name: '목포', dist: 220 }
+        ]
+      },
+      {
+        id: 'daegu_gangneung',
+        title: '대구 ➔ 강릉',
+        totalDist: 250,
+        waypoints: [
+          { name: '대구', dist: 0 },
+          { name: '영천', dist: 35 },
+          { name: '청송', dist: 85 },
+          { name: '영덕', dist: 125 },
+          { name: '울진', dist: 175 },
+          { name: '삼척', dist: 215 },
+          { name: '강릉', dist: 250 }
+        ]
+      },
+      {
+        id: 'gwangju_yeosu',
+        title: '광주 ➔ 여수',
+        totalDist: 120,
+        waypoints: [
+          { name: '광주', dist: 0 },
+          { name: '보성', dist: 45 },
+          { name: '벌교', dist: 70 },
+          { name: '순천', dist: 90 },
+          { name: '여수', dist: 120 }
+        ]
+      },
+      {
+        id: 'cheongju_sokcho',
+        title: '청주 ➔ 속초',
+        totalDist: 240,
+        waypoints: [
+          { name: '청주', dist: 0 },
+          { name: '증평', dist: 25 },
+          { name: '충주', dist: 70 },
+          { name: '제천', dist: 110 },
+          { name: '영월', dist: 150 },
+          { name: '평창', dist: 190 },
+          { name: '양양', dist: 220 },
+          { name: '속초', dist: 240 }
+        ]
+      },
+      {
+        id: 'jeonju_busan',
+        title: '전주 ➔ 부산',
+        totalDist: 190,
+        waypoints: [
+          { name: '전주', dist: 0 },
+          { name: '남원', dist: 45 },
+          { name: '함양', dist: 85 },
+          { name: '거창', dist: 115 },
+          { name: '합천', dist: 145 },
+          { name: '창녕', dist: 165 },
+          { name: '부산', dist: 190 }
+        ]
+      },
+      {
+        id: 'jeju_seogwipo',
+        title: '제주공항 ➔ 서귀포',
+        totalDist: 45,
+        waypoints: [
+          { name: '제주공항', dist: 0 },
+          { name: '제주시', dist: 8 },
+          { name: '애월', dist: 18 },
+          { name: '한라산 남쪽 구간', dist: 30 },
+          { name: '서귀포', dist: 45 }
+        ]
+      }
+,
+      {
+        id: 'incheon_jeju_fiction',
+        title: '인천 ➔ 제주 (가상 서해 해저고속도로)',
+        totalDist: 520,
+        isSeaBridge: true,
+        seaBridgeStartDist: 120,
+        waypoints: [
+          { name: '인천', dist: 0 },
+          { name: '영종도', dist: 65 },
+          { name: '가상 서해 해저터널 입구', dist: 130 },
+          { name: '서해 해저터널 1구간', dist: 195 },
+          { name: '서해 해저터널 2구간', dist: 260 },
+          { name: '가상 해상 휴게섬', dist: 325 },
+          { name: '제주 북부 진입', dist: 390 },
+          { name: '제주시', dist: 455 },
+          { name: '제주공항', dist: 520 }
+        ]
+      },
+      {
+        id: 'busan_ulleung_fiction',
+        title: '부산 ➔ 울릉도 (가상 동해 해상고속도로)',
+        totalDist: 390,
+        isSeaBridge: true,
+        seaBridgeStartDist: 95,
+        waypoints: [
+          { name: '부산', dist: 0 },
+          { name: '울산', dist: 49 },
+          { name: '경주', dist: 98 },
+          { name: '포항', dist: 146 },
+          { name: '가상 동해 해상대교 입구', dist: 195 },
+          { name: '동해 해상대교 1구간', dist: 244 },
+          { name: '해상 휴게섬', dist: 292 },
+          { name: '동해 해상대교 2구간', dist: 341 },
+          { name: '울릉도', dist: 390 }
+        ]
+      },
+      {
+        id: 'mokpo_jeju_fiction',
+        title: '목포 ➔ 제주 (가상 남해 해저터널)',
+        totalDist: 210,
+        isSeaBridge: true,
+        seaBridgeStartDist: 55,
+        waypoints: [
+          { name: '목포', dist: 0 },
+          { name: '진도', dist: 30 },
+          { name: '가상 진도 해저터널', dist: 60 },
+          { name: '해상 인공섬', dist: 90 },
+          { name: '가상 제주 해저터널', dist: 120 },
+          { name: '제주 서부 진입', dist: 150 },
+          { name: '한림', dist: 180 },
+          { name: '제주시', dist: 210 }
+        ]
+      },
+      {
+        id: 'gangneung_jeju_fiction',
+        title: '강릉 ➔ 제주 (가상 동해·남해 횡단도로)',
+        totalDist: 680,
+        isSeaBridge: true,
+        seaBridgeStartDist: 180,
+        waypoints: [
+          { name: '강릉', dist: 0 },
+          { name: '동해', dist: 68 },
+          { name: '삼척', dist: 136 },
+          { name: '가상 동해 해상대교', dist: 204 },
+          { name: '울릉 연결구간', dist: 272 },
+          { name: '가상 동해 횡단터널', dist: 340 },
+          { name: '부산', dist: 408 },
+          { name: '거제', dist: 476 },
+          { name: '가상 남해 해저터널', dist: 544 },
+          { name: '제주 동부', dist: 612 },
+          { name: '제주시', dist: 680 }
+        ]
+      },
+      {
+        id: 'yeosu_geoje_fiction',
+        title: '여수 ➔ 거제 (가상 남해 바다순환도로)',
+        totalDist: 160,
+        isSeaBridge: true,
+        seaBridgeStartDist: 45,
+        waypoints: [
+          { name: '여수', dist: 0 },
+          { name: '돌산 가상대교', dist: 27 },
+          { name: '가상 남해 해상 휴게섬', dist: 53 },
+          { name: '남해 가상 해상대교', dist: 80 },
+          { name: '통영', dist: 107 },
+          { name: '가상 해저터널', dist: 133 },
+          { name: '거제', dist: 160 }
+        ]
+      },
+      {
+        id: 'sokcho_ulsan_fiction',
+        title: '속초 ➔ 울산 (가상 동해안 해상고속도로)',
+        totalDist: 330,
+        isSeaBridge: true,
+        seaBridgeStartDist: 80,
+        waypoints: [
+          { name: '속초', dist: 0 },
+          { name: '양양', dist: 33 },
+          { name: '강릉', dist: 66 },
+          { name: '동해', dist: 99 },
+          { name: '삼척', dist: 132 },
+          { name: '가상 동해 해상교량', dist: 165 },
+          { name: '울진', dist: 198 },
+          { name: '영덕', dist: 231 },
+          { name: '포항', dist: 264 },
+          { name: '경주', dist: 297 },
+          { name: '울산', dist: 330 }
+        ]
+      },
+      {
+        id: 'gunsan_heuksando_fiction',
+        title: '군산 ➔ 흑산도 (가상 서해 군도 연결도로)',
+        totalDist: 250,
+        isSeaBridge: true,
+        seaBridgeStartDist: 70,
+        waypoints: [
+          { name: '군산', dist: 0 },
+          { name: '고군산군도', dist: 42 },
+          { name: '가상 선유 해상대교', dist: 83 },
+          { name: '가상 비안도 연결교', dist: 125 },
+          { name: '가상 서해 해상휴게섬', dist: 167 },
+          { name: '가거도 연결구간', dist: 208 },
+          { name: '흑산도', dist: 250 }
+        ]
+      },
+      {
+        id: 'gwangju_gangneung_fiction',
+        title: '광주 ➔ 강릉 (가상 백두대간 직통터널)',
+        totalDist: 290,
+        waypoints: [
+          { name: '광주', dist: 0 },
+          { name: '담양', dist: 48 },
+          { name: '가상 무주 직통터널', dist: 97 },
+          { name: '가상 백두대간 지하도로', dist: 145 },
+          { name: '평창', dist: 193 },
+          { name: '정선', dist: 242 },
+          { name: '강릉', dist: 290 }
+        ]
+      },
+      {
+        id: 'pohang_jeju_fiction',
+        title: '포항 ➔ 제주 (가상 남동해 해저고속도로)',
+        totalDist: 570,
+        isSeaBridge: true,
+        seaBridgeStartDist: 150,
+        waypoints: [
+          { name: '포항', dist: 0 },
+          { name: '경주', dist: 71 },
+          { name: '울산', dist: 142 },
+          { name: '부산', dist: 214 },
+          { name: '가상 대한해협 해저터널', dist: 285 },
+          { name: '가상 해상 환승섬', dist: 356 },
+          { name: '가상 남해 해저터널', dist: 428 },
+          { name: '제주 동부', dist: 499 },
+          { name: '서귀포', dist: 570 }
+        ]
+      },
+      {
+        id: 'daejeon_baengnyeong_fiction',
+        title: '대전 ➔ 백령도 (가상 서해 횡단고속도로)',
+        totalDist: 430,
+        isSeaBridge: true,
+        seaBridgeStartDist: 115,
+        waypoints: [
+          { name: '대전', dist: 0 },
+          { name: '세종', dist: 54 },
+          { name: '천안', dist: 108 },
+          { name: '평택', dist: 161 },
+          { name: '인천', dist: 215 },
+          { name: '가상 강화 연결대교', dist: 269 },
+          { name: '가상 서해 해상대교', dist: 322 },
+          { name: '해상 휴게섬', dist: 376 },
+          { name: '백령도', dist: 430 }
+        ]
       }
     ];
 
-    // --- 2. CAR DATABASE (10 VEHICLES) ---
+    // --- 2. CAR DATABASE (17 VEHICLES) ---
     const CAR_DATABASE = [
       {
         id: 'compact',
@@ -1404,6 +1809,54 @@
         hasMagnet: false,
         isElectric: true,
         energyUse: 0.27
+      },
+      {
+        id: 'ev_ioniq6',
+        name: '전기차 아이오닉 6',
+        price: 1100,
+        color: '#67e8f9',
+        maxSpeed: 365,
+        accel: 138,
+        lives: 4,
+        perkText: '코인 +9.5 · 코인 획득 +22% · 전기차',
+        icon: 'fa-bolt',
+        coinBonus: 9.5,
+        coinMultiplier: 1.22,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.26
+      },
+      {
+        id: 'ev_tesla_model_s',
+        name: '전기차 테슬라 모델 S',
+        price: 1300,
+        color: '#f87171',
+        maxSpeed: 380,
+        accel: 150,
+        lives: 4,
+        perkText: '코인 +10 · 코인 획득 +25% · 전기차',
+        icon: 'fa-car-side',
+        coinBonus: 10,
+        coinMultiplier: 1.25,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.28
+      },
+      {
+        id: 'ev_porsche_taycan',
+        name: '전기차 포르쉐 타이칸',
+        price: 1600,
+        color: '#c4b5fd',
+        maxSpeed: 395,
+        accel: 165,
+        lives: 5,
+        perkText: '코인 +11 · 코인 획득 +30% · 전기차',
+        icon: 'fa-bolt',
+        coinBonus: 11,
+        coinMultiplier: 1.30,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.30
       },
       {
         id: 'ultra_premium',
@@ -1726,6 +2179,58 @@
 
     // --- 6. LANDSCAPE ENGINE STATE ---
     let gameState = 'START';
+
+    // --- 휴게소 시스템 ---
+    const REST_STOP_INTERVAL_KM = 100;
+    let nextRestStopKm = REST_STOP_INTERVAL_KM;
+    let restStopCoinBonus = 1;
+    let restStopPausedAt = 0;
+    let restStopRoadVisible = false;
+
+    function openRestStop() {
+      if (gameState !== 'PLAYING' || !restStopRoadVisible) return;
+      gameState = 'RESTSTOP';
+      restStopRoadVisible = false;
+      document.getElementById('enterRestStopRoad')?.classList.add('hidden');
+      player.speed = 0;
+      restStopPausedAt = performance.now();
+      const modal = document.getElementById('restStopModal');
+      const message = document.getElementById('restStopMessage');
+      if (message) message.textContent = `${Math.floor(currentDistance)}km 지점 휴게소에 도착했습니다. 현재 연료/배터리 ${Math.ceil(fuelLevel)}% · 보유 코인 ${totalCoins}코인`;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeRestStop() {
+      const modal = document.getElementById('restStopModal');
+      if (modal) modal.classList.add('hidden');
+      if (gameState !== 'RESTSTOP') return;
+      gameState = 'PLAYING';
+      lastTime = performance.now();
+      requestAnimationFrame(gameLoop);
+      updateFuelUI();
+      saveUserData();
+    }
+
+    function buyRestStopService(cost, fuelAmount, bonus) {
+      if (totalCoins < cost) {
+        alert(`코인이 부족합니다. ${cost}코인이 필요합니다.`);
+        return;
+      }
+      totalCoins -= cost;
+      fuelLevel = Math.min(100, fuelLevel + fuelAmount);
+      if (bonus) restStopCoinBonus = Math.max(restStopCoinBonus, bonus);
+      updateCoinsUI();
+      updateFuelUI();
+      saveUserData();
+      const message = document.getElementById('restStopMessage');
+      if (message) message.textContent = `서비스 이용 완료! 연료/배터리 ${Math.ceil(fuelLevel)}% · 남은 코인 ${totalCoins}코인`;
+    }
+
+    document.getElementById('restFuel30').addEventListener('click', () => buyRestStopService(40, 30, 1));
+    document.getElementById('restFuelFull').addEventListener('click', () => buyRestStopService(100, 100, 1));
+    document.getElementById('restSnack').addEventListener('click', () => buyRestStopService(20, 0, 1.1));
+    document.getElementById('restContinue').addEventListener('click', closeRestStop);
+    document.getElementById('enterRestStopRoad').addEventListener('click', openRestStop);
     let currentDistance = 0;
     let lives = 3;
     let maxLives = 3;
@@ -2102,6 +2607,10 @@
       updateLivesUI();
 
       currentDistance = 0;
+      nextRestStopKm = REST_STOP_INTERVAL_KM;
+      restStopRoadVisible = false;
+      document.getElementById('enterRestStopRoad')?.classList.add('hidden');
+      restStopCoinBonus = 1;
       sessionCoins = 0;
       currentWaypointIndex = 0;
       traffic = [];
@@ -2246,6 +2755,15 @@
       const activeRoute = ROUTE_DATA[selectedRouteIndex];
       const distanceGained = (player.speed / 3600) * dt * 28;
       currentDistance += distanceGained;
+      const restDistanceLeft = nextRestStopKm - currentDistance;
+      restStopRoadVisible = restDistanceLeft <= 15 && restDistanceLeft >= -5;
+      const restEntryButton = document.getElementById('enterRestStopRoad');
+      if (restEntryButton) restEntryButton.classList.toggle('hidden', !restStopRoadVisible || gameState !== 'PLAYING');
+      if (restDistanceLeft < -5) {
+        nextRestStopKm += REST_STOP_INTERVAL_KM;
+        restStopRoadVisible = false;
+        restEntryButton?.classList.add('hidden');
+      }
       // 기본 차량은 2,000km, 울트라 프리미엄카는 3,000km 주행 가능. 업그레이드 효율 보너스 적용
       const upgradeStats = getCarUpgradeStats(equipped);
       const baseRangeKm = equipped.rangeKm || 2000;
@@ -2362,6 +2880,7 @@
     }
 
     function triggerGameOver(reason) {
+      document.getElementById('restStopModal').classList.add('hidden');
       gameState = 'GAMEOVER';
       clearInterval(timerInterval);
 
@@ -2380,6 +2899,7 @@
     document.getElementById('reviveBtn').addEventListener('click', reviveAfterCrash);
 
     function triggerVictory() {
+      document.getElementById('restStopModal').classList.add('hidden');
       gameState = 'VICTORY';
       clearInterval(timerInterval);
       audio.playVictory();
@@ -2585,6 +3105,37 @@
       }
       ctx.setLineDash([]);
 
+      // 휴게소 진출로: 실제 주행 도로 옆으로 갈라지는 진입 램프
+      if (!isSeaBridgeSection) {
+        const remainToRest = nextRestStopKm - currentDistance;
+        if (remainToRest <= 35 && remainToRest >= -8) {
+          const approach = Math.max(0, Math.min(1, (35 - remainToRest) / 43));
+          const rampX = canvas.width * (0.88 - approach * 0.58);
+          const rampStartY = roadBottom - 3;
+          const rampEndY = Math.min(canvas.height - 12, roadBottom + 76);
+          ctx.save();
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 34;
+          ctx.beginPath(); ctx.moveTo(rampX, rampStartY);
+          ctx.bezierCurveTo(rampX + 35, roadBottom + 24, rampX + 70, rampEndY - 12, rampX + 112, rampEndY);
+          ctx.stroke();
+          ctx.strokeStyle = '#475569'; ctx.lineWidth = 27;
+          ctx.beginPath(); ctx.moveTo(rampX, rampStartY);
+          ctx.bezierCurveTo(rampX + 35, roadBottom + 24, rampX + 70, rampEndY - 12, rampX + 112, rampEndY);
+          ctx.stroke();
+          ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([10, 9]);
+          ctx.beginPath(); ctx.moveTo(rampX + 5, rampStartY + 8);
+          ctx.bezierCurveTo(rampX + 40, roadBottom + 28, rampX + 75, rampEndY - 8, rampX + 112, rampEndY - 3);
+          ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle = '#064e3b'; ctx.fillRect(rampX + 30, rampEndY - 35, 112, 27);
+          ctx.strokeStyle = '#a7f3d0'; ctx.lineWidth = 2; ctx.strokeRect(rampX + 30, rampEndY - 35, 112, 27);
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText('🏪 휴게소', rampX + 86, rampEndY - 17);
+          ctx.restore();
+        }
+      }
+
       // Draw Highway Coins
       coins.forEach(c => {
         ctx.save();
@@ -2711,7 +3262,7 @@
 
       ctx.restore();
     }
-
+S
     // --- 13. INITIALIZATION ---
     window.onload = () => {
       saveUserData();
