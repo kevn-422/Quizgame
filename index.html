@@ -5283,185 +5283,79 @@ const AchSystem = (() => {
   }
 })();
 </script>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>고속도로 레이싱 게임 - 에러 수정 완벽 통합 버전</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            background-color: #030712;
-            color: #f8fafc;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+<script>
+(()=>{
+  // 1. 게임 화면 및 렌더링 영역 크기 확장 (커브 구간이 넉넉히 보이도록 배율 조정)
+  const origR = window.render;
+  if (!origR) return;
+  const curveIndices = new Set([2, 7, 12, 16, 21]);
+
+  window.render = function(){
+    const activeRoute = typeof ROUTE_DATA !== 'undefined' && ROUTE_DATA[selectedRouteIndex] ? ROUTE_DATA[selectedRouteIndex] : {waypoints:[]};
+    const wpCount = activeRoute.waypoints.length || 10;
+    const curIdx = Math.min(wpCount - 1, Math.floor((currentDistance / (activeRoute.totalDist || 100)) * wpCount));
+    
+    const canvasEl = document.getElementById('gameCanvas') || document.querySelector('canvas');
+    if (canvasEl) {
+      // 캔버스 자체의 내부 해상도를 살짝 넓혀서 꺾이는 구간이 여유있게 보이도록 설정
+      if (!canvasEl.dataset.expanded) {
+        canvasEl.width = Math.floor(canvasEl.width * 1.15);
+        canvasEl.height = Math.floor(canvasEl.height * 1.05);
+        canvasEl.dataset.expanded = "true";
+      }
+    }
+
+    if (curveIndices.has(curIdx)) {
+      ctx.save();
+      // 커브 구간에서 도로가 화면 안쪽에서 부드럽고 넓게 꺾이도록 이동 폭 조절
+      const curveAmt = Math.sin(currentDistance * 0.08) * 25;
+      ctx.translate(curveAmt, 0);
+      origR.apply(this, arguments);
+      ctx.restore();
+    } else {
+      origR.apply(this, arguments);
+    }
+  };
+
+  // 2. 상단/하단 UI 레이아웃 및 스타일을 넓어진 화면 비율에 맞게 확장
+  const container = document.getElementById('game-container');
+  if (container) {
+    container.style.maxWidth = '540px'; // 기존보다 화면 폭을 살짝 넓혀서 시야 확보
+    container.style.height = '100vh';
+  }
+
+  // 3. 상단 경로 바에 곡선 구간 마크 표시 유지
+  const origRoute = window.setupRouteNodes;
+  if (origRoute) {
+    window.setupRouteNodes = function() {
+      origRoute.apply(this, arguments);
+      const activeRoute = ROUTE_DATA[selectedRouteIndex];
+      if (!activeRoute) return;
+      activeRoute.waypoints.forEach((wp, idx) => {
+        if (curveIndices.has(idx)) {
+          const dot = document.getElementById(`node-${idx}`);
+          const label = document.getElementById(`label-${idx}`);
+          if (dot) {
+            dot.style.background = '#f59e0b';
+            dot.style.boxShadow = '0 0 8px #f59e0b';
+          }
+          if (label) {
+            label.innerHTML = `〰️ ${wp.name}`;
+            label.style.color = '#fcd34d';
+          }
         }
-        canvas {
-            background: #1e293b;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            touch-action: none;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- 메인 게임 컨테이너 -->
-    <div id="game-container" class="relative w-full max-w-md h-full max-h-[850px] flex flex-col items-center justify-between p-4 box-border">
-        
-        <!-- 상단 HUD -->
-        <div class="w-full flex justify-between items-center bg-slate-900/90 border border-slate-700/60 px-4 py-2 rounded-2xl backdrop-blur-md z-10 shadow-lg">
-            <div class="flex items-center gap-2">
-                <span class="text-amber-400 text-sm font-bold">💰 <span id="hud-coins">150</span> 코인</span>
-            </div>
-            <div class="flex items-center gap-1 text-red-500 text-sm" id="hud-lives">
-                ❤️❤️❤️
-            </div>
-            <div class="text-xs text-cyan-400 font-bold" id="hud-mode-display">일반 주행 모드</div>
-        </div>
-
-        <!-- 캔버스 게임 화면 -->
-        <div class="relative my-auto">
-            <canvas id="gameCanvas" width="380" height="480" class="rounded-2xl border-2 border-slate-700 block"></canvas>
-        </div>
-
-        <!-- 모바일 및 PC 겸용 하단 터치 조작 패드 -->
-        <div class="w-full flex justify-between items-center px-2 pb-2 z-10">
-            <div class="grid grid-cols-3 gap-1 w-32 h-32">
-                <div></div>
-                <button id="btn-up" class="bg-slate-800/90 border border-slate-600 active:bg-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-lg">▲</button>
-                <div></div>
-                <button id="btn-left" class="bg-slate-800/90 border border-slate-600 active:bg-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-lg">◀</button>
-                <button id="btn-down" class="bg-slate-800/90 border border-slate-600 active:bg-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-lg">▼</button>
-                <button id="btn-right" class="bg-slate-800/90 border border-slate-600 active:bg-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg text-lg">▶</button>
-            </div>
-            <div class="flex gap-2">
-                <button id="btn-boost" class="px-6 h-20 bg-gradient-to-r from-amber-600 to-red-600 active:opacity-80 rounded-2xl flex items-center justify-center text-sm font-black text-white shadow-lg tracking-wider">BOOST</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 게임 시작 메뉴 오버레이 -->
-    <div id="menu-overlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center p-6 backdrop-blur-md">
-        <div class="max-w-md w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
-            <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">HIGHWAY RACER</h1>
-            <p class="text-slate-400 text-xs">모바일 세로 화면 및 컴퓨터 화면 최적화 완료</p>
-
-            <button onclick="startGame()" class="p-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:opacity-90 text-white font-black text-lg rounded-2xl shadow-lg transition cursor-pointer">
-                🚀 게임 시작하기
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // 전역 변수 중복 선언 방지 처리
-        window.gameCanvasObj = window.gameCanvasObj || {};
-        
-        const mainCanvas = document.getElementById('gameCanvas');
-        const mainCtx = mainCanvas.getContext('2d');
-
-        let gameRunning = false;
-        let gamePlayer = {
-            x: 165,
-            y: 380,
-            width: 45,
-            height: 75,
-            speed: 5
-        };
-
-        const inputKeys = {};
-
-        // 키보드 입력 방지 및 등록
-        window.addEventListener('keydown', (e) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', ' '].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                e.preventDefault();
-            }
-            inputKeys[e.code] = true;
-        }, { passive: false });
-
-        window.addEventListener('keyup', (e) => {
-            inputKeys[e.code] = false;
-        });
-
-        // 터치 조작 이벤트 바인딩
-        function bindTouchButton(id, code) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); inputKeys[code] = true; }, { passive: false });
-            el.addEventListener('touchend', (e) => { e.preventDefault(); inputKeys[code] = false; }, { passive: false });
-            el.addEventListener('mousedown', () => { inputKeys[code] = true; });
-            el.addEventListener('mouseup', () => { inputKeys[code] = false; });
-        }
-
-        bindTouchButton('btn-up', 'ArrowUp');
-        bindTouchButton('btn-down', 'ArrowDown');
-        bindTouchButton('btn-left', 'ArrowLeft');
-        bindTouchButton('btn-right', 'ArrowRight');
-        bindTouchButton('btn-boost', 'Space');
-
-        function startGame() {
-            document.getElementById('menu-overlay').style.display = 'none';
-            gameRunning = true;
-            requestAnimationFrame(gameLoop);
-        }
-
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            // 도로 배경 그리기
-            mainCtx.fillStyle = '#1e293b';
-            mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-
-            // 차선 점선 그리기
-            mainCtx.strokeStyle = '#475569';
-            mainCtx.lineWidth = 3;
-            mainCtx.setLineDash([20, 20]);
-            [126, 252].forEach(lx => {
-                mainCtx.beginPath();
-                mainCtx.moveTo(lx, 0);
-                mainCtx.lineTo(lx, mainCanvas.height);
-                mainCtx.stroke();
-            });
-            mainCtx.setLineDash([]);
-
-            // 플레이어 이동 처리
-            let currentSpeed = gamePlayer.speed;
-            if (inputKeys['Space']) currentSpeed *= 1.8;
-
-            if ((inputKeys['ArrowLeft'] || inputKeys['KeyA']) && gamePlayer.x > 20) {
-                gamePlayer.x -= currentSpeed;
-            }
-            if ((inputKeys['ArrowRight'] || inputKeys['KeyD']) && gamePlayer.x < mainCanvas.width - gamePlayer.width - 20) {
-                gamePlayer.x += currentSpeed;
-            }
-            if ((inputKeys['ArrowUp'] || inputKeys['KeyW']) && gamePlayer.y > 20) {
-                gamePlayer.y -= currentSpeed;
-            }
-            if ((inputKeys['ArrowDown'] || inputKeys['KeyS']) && gamePlayer.y < mainCanvas.height - gamePlayer.height - 20) {
-                gamePlayer.y += currentSpeed;
-            }
-
-            // 플레이어 차량 렌더링
-            mainCtx.font = '36px sans-serif';
-            mainCtx.textAlign = 'center';
-            mainCtx.textBaseline = 'middle';
-            mainCtx.fillText('🏎️', gamePlayer.x + gamePlayer.width / 2, gamePlayer.y + gamePlayer.height / 2);
-
-            requestAnimationFrame(gameLoop);
-        }
-    </script>
-</body>
-</html>
+      });
+    };
+  }
+  if (typeof renderRouteList === 'function') {
+    const origRenderList = renderRouteList;
+    window.renderRouteList = function() {
+      origRenderList.apply(this, arguments);
+      setupRouteNodes();
+    };
+  }
+  setTimeout(setupRouteNodes, 100);
+})();
+</script>
 </body>
 </html>
