@@ -7,6 +7,61 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root{
+  --cyber-cyan:#00ffff;
+  --cyber-pink:#ff00ff;
+  --cyber-purple:#9d4edd;
+}
+
+body{
+  background:
+  radial-gradient(circle at 20% 20%, rgba(255,0,255,.18), transparent 30%),
+  radial-gradient(circle at 80% 30%, rgba(0,255,255,.18), transparent 30%),
+  linear-gradient(135deg,#02030d,#090021,#040812);
+}
+
+header,
+#garageModal,
+#startOverlay,
+#gameOverOverlay,
+#victoryOverlay{
+  backdrop-filter:blur(18px);
+  background:rgba(0,0,0,.45);
+}
+
+@keyframes cyberGlow{
+  0%,100%{
+    box-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #00ffff;
+  }
+  50%{
+    box-shadow:
+    0 0 20px #ff00ff,
+    0 0 50px #ff00ff;
+  }
+}
+
+header{
+  border:1px solid #00ffff;
+  animation:cyberGlow 4s infinite;
+}
+
+#progressBar{
+  background:
+  linear-gradient(
+      90deg,
+      #ff00ff,
+      #00ffff,
+      #00ff66
+  ) !important;
+}
+
+.font-arcade{
+  text-shadow:
+  0 0 8px #00ffff,
+  0 0 16px #00ffff;
+}
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
     
     * {
@@ -161,8 +216,45 @@
         </div>
 
         <!-- Realtime Timer -->
-        <div class="font-arcade text-emerald-400 font-black text-base md:text-xl tracking-wider min-w-[110px] text-right drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" id="timerDisplay">
-          00:00.00
+       <div class="flex items-center gap-3">
+
+  <!-- LEVEL -->
+  <div
+    id="levelDisplay"
+    class="bg-purple-500/20
+    border border-purple-400/40
+    text-purple-300
+    px-3 py-1
+    rounded-xl
+    font-arcade
+    font-black
+    text-sm
+    md:text-base
+    shadow-lg
+    shadow-purple-500/20">
+
+    LV.1
+
+  </div>
+
+  <!-- TIMER -->
+  <div
+    class="font-arcade
+    text-emerald-400
+    font-black
+    text-base
+    md:text-xl
+    tracking-wider
+    min-w-[110px]
+    text-right
+    drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]"
+    id="timerDisplay">
+
+    00:00.00
+
+  </div>
+
+</div>
         </div>
       </div>
     </div>
@@ -179,8 +271,7 @@
       </div>
     </div>
   </header>
-
-  <!-- WIDESCREEN GAME CANVAS CONTAINER -->
+<!-- WIDESCREEN GAME CANVAS CONTAINER -->
   <main id="canvasContainer" class="relative w-full max-w-6xl my-auto flex-1 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-700/80 shadow-2xl bg-slate-950 my-2">
     <canvas id="gameCanvas" class="w-full h-full block rounded-2xl z-0"></canvas>
     <div id="weatherVisual" aria-hidden="true"></div>
@@ -198,7 +289,7 @@
             <h1 class="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400">
               전국 고속도로 차 피하기 (PC 가로 화면 모드)
             </h1>
-            <p class="text-xs text-slate-400">총 61개 노선과 16종의 차량을 즐겨보세요!</p>
+            <p class="text-xs text-slate-400">총 70개 노선과 23종의 차량을 즐겨보세요!</p>
           </div>
         </div>
 
@@ -211,7 +302,10 @@
 
           <!-- Open Garage Button -->
           <button id="openGarageBtn" class="cursor-pointer px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
-            <i class="fa-solid fa-warehouse"></i> 차고 상점 (15종)
+            <i class="fa-solid fa-warehouse"></i> 차고 상점 (23종)
+          </button>
+          <button id="openCarDexBtn" class="cursor-pointer px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
+            <i class="fa-solid fa-book-open"></i> 자동차 도감
           </button>
         </div>
       </div>
@@ -221,7 +315,7 @@
         <!-- Left: Route List (15 routes) -->
         <div class="col-span-12 flex flex-col gap-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 61개 주요 코스 · 전체 경유지 표시)
+            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 70개 주요 코스 · 전체 경유지 표시)
           </div>
           <div id="routeListContainer" class="flex flex-col gap-3 w-full">
             <!-- Dynamic Route Cards -->
@@ -240,6 +334,7 @@
               <div>
                 <div id="equippedCarName" class="font-bold text-sm text-white">기본 경차</div>
                 <div id="equippedCarPerk" class="text-xs text-cyan-300 mt-0.5">표준 성능</div>
+                <div id="equippedCarSkill" class="text-[11px] text-amber-300 mt-1 font-bold">✨ 특수 스킬: 기본 주행</div>
               </div>
             </div>
           </div>
@@ -261,6 +356,20 @@
         </div>
       </div>
 
+      <!-- DAILY MISSIONS -->
+      <section id="dailyMissionPanel" class="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div>
+            <div class="text-sm font-black text-amber-300">🎯 오늘의 일일 미션</div>
+            <div class="text-[10px] text-slate-400">매일 자정에 초기화 · 미션을 완료하고 보상을 받으세요!</div>
+          </div>
+          <span class="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2 py-1">난이도별 보상 지급</span>
+        </div>
+        <div id="dailyMissionList" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="text-xs text-slate-400">일일 미션을 불러오는 중...</div>
+        </div>
+      </section>
+
       <!-- Start Game CTA Button -->
       <button id="startBtn" class="cursor-pointer w-full py-3.5 bg-gradient-to-r from-blue-600 via-cyan-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-extrabold text-base md:text-lg rounded-2xl shadow-xl shadow-blue-600/30 transform active:scale-98 transition flex items-center justify-center gap-3">
         <i class="fa-solid fa-circle-play text-xl"></i> 선택 노선으로 고속도로 주행 시작하기
@@ -274,7 +383,7 @@
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-warehouse text-amber-400 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-bold text-white">차고 상점 (총 16종의 차량)</h2>
+            <h2 class="text-lg font-bold text-white">차고 상점 (총 23종의 차량)</h2>
             <p class="text-xs text-slate-400">주행 중 코인을 모아 차량을 구매하고 특수 스킬을 활용하세요.</p>
           </div>
         </div>
@@ -333,6 +442,59 @@
       <button id="garageDoneBtn" class="cursor-pointer w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition">
         확인 및 돌아가기
       </button>
+    </div>
+
+
+    <!-- OVERLAY: AUTOMOBILE ENCYCLOPEDIA -->
+    <div id="carDexModal" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col p-4 md:p-6 z-40 pointer-events-auto">
+      <div class="flex flex-wrap justify-between items-center gap-3 border-b border-cyan-500/30 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-300 text-2xl">📘</div>
+          <div>
+            <h2 class="text-xl font-black text-white">자동차 도감</h2>
+            <p class="text-xs text-slate-400">차량 정보와 특수 스킬을 확인하고 나만의 컬렉션을 완성하세요.</p>
+          </div>
+        </div>
+        <button id="closeCarDexBtn" class="text-slate-400 hover:text-white text-2xl px-2" aria-label="도감 닫기">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2 my-3">
+        <div class="bg-slate-900 border border-cyan-500/30 rounded-xl p-3">
+          <div class="text-[10px] text-slate-400">수집 현황</div>
+          <div id="carDexProgress" class="text-lg font-black text-cyan-300">0 / 23대</div>
+          <div class="h-2 bg-slate-800 rounded-full overflow-hidden mt-2">
+            <div id="carDexProgressBar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-3">
+          <div class="text-[10px] text-slate-400">현재 장착 차량</div>
+          <div id="carDexEquipped" class="text-sm font-black text-amber-300 mt-1">기본 경차</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-3">
+          <div class="text-[10px] text-slate-400">도감 안내</div>
+          <div class="text-xs text-slate-300 mt-1">보유한 차량은 상세 능력치가 공개됩니다. 미보유 차량도 기본 정보는 확인할 수 있습니다.</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-3">
+        <input id="carDexSearch" type="search" placeholder="차량 이름 검색..." class="flex-1 min-w-[180px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
+        <select id="carDexFilter" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+          <option value="all">전체 차량</option>
+          <option value="owned">보유 차량</option>
+          <option value="locked">미보유 차량</option>
+          <option value="acceleration">스포츠 가속</option>
+          <option value="efficiency">전기 절약</option>
+          <option value="armor">강화 차체</option>
+          <option value="standard">기본 주행</option>
+        </select>
+      </div>
+
+      <div id="carDexGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 overflow-y-auto pr-1 pb-3 flex-1">
+        <div class="text-sm text-slate-400">자동차 도감을 불러오는 중...</div>
+      </div>
+      <button id="carDexDoneBtn" class="mt-3 w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-xl border border-slate-700">확인 및 돌아가기</button>
     </div>
 
     <!-- OVERLAY 3: GAME OVER SCREEN -->
@@ -465,7 +627,7 @@
   </div>
 
   <script>
-    // --- 특별 상황 시스템: 모든 61개 노선에 공통 적용 ---
+    // --- 특별 상황 시스템: 모든 70개 노선에 공통 적용 ---
     const WEATHER_TYPES = [
       { name: '폭우', icon: '🌧️', cls: 'rain', desc: '강한 비가 내립니다. 안전 운전에 주의하세요!' },
       { name: '폭설', icon: '❄️', cls: 'snow', desc: '눈이 내리는 겨울 도로입니다.' },
@@ -618,7 +780,7 @@
     setInterval(updateRandomEventTimer, 250);
     updateRandomEventTimer();
 
-    // --- 1. ROUTE PRESETS (61 ROUTES) ---
+    // --- 1. ROUTE PRESETS (62 ROUTES) ---
     const ROUTE_DATA = [
       {
         id: 'incheon',
@@ -1617,10 +1779,162 @@
           { name: '해상 휴게섬', dist: 376 },
           { name: '백령도', dist: 430 }
         ]
+      },
+      {
+        id: 'seoul_sejong',
+        title: '서울 ➔ 세종',
+        totalDist: 135,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '성남', dist: 18 },
+          { name: '용인', dist: 38 },
+          { name: '안성', dist: 62 },
+          { name: '천안', dist: 82 },
+          { name: '공주', dist: 112 },
+          { name: '세종', dist: 135 }
+        ]
+      },
+      {
+        id: 'seoul_changwon',
+        title: '서울 ➔ 창원',
+        totalDist: 365,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '천안', dist: 82 },
+          { name: '대전', dist: 145 },
+          { name: '김천', dist: 205 },
+          { name: '대구', dist: 265 },
+          { name: '밀양', dist: 320 },
+          { name: '창원', dist: 365 }
+        ]
+      },
+      {
+        id: 'seoul_wonju',
+        title: '서울 ➔ 원주',
+        totalDist: 125,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 18 },
+          { name: '남양주', dist: 32 },
+          { name: '양평', dist: 65 },
+          { name: '횡성', dist: 98 },
+          { name: '원주', dist: 125 }
+        ]
+      },
+      {
+        id: 'seoul_fukuoka_fiction',
+        title: '서울 ➔ 후쿠오카 (가상 한일 해저고속도로)',
+        totalDist: 620,
+        isSeaBridge: true,
+        seaBridgeStartDist: 405,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 45 },
+          { name: '천안', dist: 105 },
+          { name: '대전', dist: 165 },
+          { name: '대구', dist: 245 },
+          { name: '부산', dist: 405 },
+          { name: '가상 대한해협 해저터널 입구', dist: 455 },
+          { name: '가상 대한해협 해저터널', dist: 510 },
+          { name: '가상 쓰시마 연결구간', dist: 555 },
+          { name: '후쿠오카', dist: 620 }
+        ]
+            },
+      {
+        id: 'seoul_taipei',
+        title: '서울 ➔ 타이베이 (가상 국제 해상대교)',
+        totalDist: 1450,
+        isSeaBridge: true,
+        seaBridgeStartDist: 405,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 45 },
+          { name: '대전', dist: 165 },
+          { name: '대구', dist: 280 },
+          { name: '부산', dist: 405 },
+          { name: '남해 해상 연결구간', dist: 650 },
+          { name: '동중국해 해상대교 1구간', dist: 900 },
+          { name: '동중국해 해상대교 2구간', dist: 1180 },
+          { name: '대만 북부 연결구간', dist: 1370 },
+          { name: '타이베이', dist: 1450 }
+        ]
+      },
+      {
+        id: 'seoul_shanghai',
+        title: '서울 ➔ 상하이 (가상 국제 해상대교)',
+        totalDist: 1250,
+        isSeaBridge: true,
+        seaBridgeStartDist: 260,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '인천', dist: 45 },
+          { name: '인천 국제항', dist: 70 },
+          { name: '서해 해상대교 1구간', dist: 350 },
+          { name: '서해 해상대교 2구간', dist: 650 },
+          { name: '중국 산둥 연결구간', dist: 850 },
+          { name: '난퉁', dist: 1080 },
+          { name: '쑤저우', dist: 1180 },
+          { name: '상하이', dist: 1250 }
+        ]
+      },
+      {
+        id: 'seoul_hongkong',
+        title: '서울 ➔ 홍콩 (가상 국제 해상대교)',
+        totalDist: 2350,
+        isSeaBridge: true,
+        seaBridgeStartDist: 260,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '인천', dist: 45 },
+          { name: '서해 해상대교 진입', dist: 260 },
+          { name: '중국 동부 연결구간', dist: 780 },
+          { name: '항저우', dist: 1250 },
+          { name: '푸저우', dist: 1700 },
+          { name: '샤먼', dist: 1950 },
+          { name: '선전', dist: 2250 },
+          { name: '홍콩', dist: 2350 }
+        ]
+      },
+      {
+        id: 'seoul_singapore',
+        title: '서울 ➔ 싱가포르 (가상 국제 해상대교)',
+        totalDist: 4800,
+        isSeaBridge: true,
+        seaBridgeStartDist: 260,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '인천', dist: 45 },
+          { name: '서해 해상대교', dist: 260 },
+          { name: '중국 동부 연결구간', dist: 1100 },
+          { name: '광저우', dist: 1900 },
+          { name: '난닝', dist: 2700 },
+          { name: '하노이 인근 연결구간', dist: 3300 },
+          { name: '방콕', dist: 3950 },
+          { name: '쿠알라룸푸르', dist: 4550 },
+          { name: '싱가포르', dist: 4800 }
+        ]
+      },
+      {
+        id: 'seoul_vladivostok',
+        title: '서울 ➔ 블라디보스토크 (가상 국제 해상대교)',
+        totalDist: 1050,
+        isSeaBridge: true,
+        seaBridgeStartDist: 180,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '춘천', dist: 110 },
+          { name: '속초', dist: 205 },
+          { name: '동해안 해상 연결구간', dist: 360 },
+          { name: '동해 해상대교 1구간', dist: 570 },
+          { name: '동해 해상대교 2구간', dist: 780 },
+          { name: '러시아 연안 연결구간', dist: 930 },
+          { name: '블라디보스토크', dist: 1050 }
+        ]
       }
     ];
 
-    // --- 2. CAR DATABASE (17 VEHICLES) ---
+    // --- 2. CAR DATABASE (24 VEHICLES) ---
     const CAR_DATABASE = [
       {
         id: 'compact',
@@ -1859,6 +2173,70 @@
         energyUse: 0.30
       },
       {
+        id: 'ev9',
+        name: '전기차 기아 EV9',
+        price: 1750,
+        color: '#60a5fa',
+        maxSpeed: 405,
+        accel: 142,
+        lives: 6,
+        perkText: '코인 +11.5 · 코인 획득 +28% · 전기차 · 체력 +3',
+        icon: 'fa-car-side',
+        coinBonus: 11.5,
+        coinMultiplier: 1.28,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.29
+      },
+      {
+        id: 'kona_electric',
+        name: '전기차 코나 일렉트릭',
+        price: 1850,
+        color: '#34d399',
+        maxSpeed: 390,
+        accel: 148,
+        lives: 5,
+        perkText: '코인 +11 · 코인 획득 +27% · 전기차',
+        icon: 'fa-car',
+        coinBonus: 11,
+        coinMultiplier: 1.27,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.22
+      },
+      {
+        id: 'tesla_model_y',
+        name: '전기차 테슬라 모델 Y',
+        price: 2100,
+        color: '#fca5a5',
+        maxSpeed: 420,
+        accel: 160,
+        lives: 5,
+        perkText: '코인 +12 · 코인 획득 +32% · 전기차',
+        icon: 'fa-bolt',
+        coinBonus: 12,
+        coinMultiplier: 1.32,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.27
+      },
+      {
+        id: 'byd_seal',
+        name: '전기차 BYD 씰',
+        price: 2300,
+        color: '#fcd34d',
+        maxSpeed: 435,
+        accel: 168,
+        lives: 5,
+        perkText: '코인 +13 · 코인 획득 +35% · 전기차',
+        icon: 'fa-bolt',
+        coinBonus: 13,
+        coinMultiplier: 1.35,
+        hasMagnet: false,
+        isElectric: true,
+        energyUse: 0.28
+      },
+      {
         id: 'ultra_premium',
         name: '울트라 프리미엄카',
         price: 1000,
@@ -1902,8 +2280,44 @@
         coinBonus: 12,
         coinMultiplier: 1.25,
         hasMagnet: false
-      }
+      },
+      {
+        id: 'long_range_tourer',
+        name: '장거리 하이브리드 투어러',
+        price: 2800,
+        color: '#22d3ee',
+        maxSpeed: 430,
+        accel: 165,
+        lives: 6,
+        perkText: '코인 +14 · 코인 획득 +40% · 최대 주행거리 5,000km',
+        icon: 'fa-car-side',
+        coinBonus: 14,
+        coinMultiplier: 1.40,
+        hasMagnet: false,
+        rangeKm: 5000
+      },
     ];
+
+
+    // --- 차량별 고유 특수 스킬 ---
+    // 스포츠카 계열: 가속 강화 / 전기차 계열: 에너지 효율 / SUV 계열: 충돌 피해 완화
+    const CAR_SKILL_DEFINITIONS = {
+      acceleration: { name: '스포츠 가속', description: '가속 및 순간 부스터 반응 +20%', icon: '⚡' },
+      efficiency: { name: '전기 절약', description: '연료/배터리 소모량 20% 감소', icon: '🔋' },
+      armor: { name: '강화 차체', description: '20초마다 충돌 피해 1회 방어', icon: '🛡️' },
+      standard: { name: '기본 주행', description: '추가 특수 스킬 없음', icon: '🚘' }
+    };
+
+    function getCarSkillType(car) {
+      if (['suv', 'cybertruck', 'ev9'].includes(car.id)) return 'armor';
+      if (car.isElectric) return 'efficiency';
+      if (['sports', 'supercar', 'hyper_racer', 'ultra_super_high'].includes(car.id)) return 'acceleration';
+      return 'standard';
+    }
+
+    function getCarSkill(car) {
+      return CAR_SKILL_DEFINITIONS[getCarSkillType(car)] || CAR_SKILL_DEFINITIONS.standard;
+    }
 
     // 차량 목록을 최고속도 기준 내림차순으로 정렬 (빠른 차량이 먼저 표시됨)
     CAR_DATABASE.sort((a, b) => b.maxSpeed - a.maxSpeed);
@@ -1911,6 +2325,47 @@
     // --- 3. SAVED STATE & LOCALSTORAGE ---
     let selectedRouteIndex = 0;
     let totalCoins = parseInt(localStorage.getItem('highway_coins_pc') || '0', 10);
+    // ===== PLAYER PROFILE =====
+
+let playerXP =
+parseInt(localStorage.getItem("highway_xp") || "0");
+
+let achievements =
+JSON.parse(
+localStorage.getItem("highway_achievements")
+|| "[]"
+);
+
+let records =
+JSON.parse(
+localStorage.getItem("highway_records")
+|| "[]"
+);
+
+function saveProfile(){
+
+localStorage.setItem(
+"highway_xp",
+playerXP
+);
+
+localStorage.setItem(
+"highway_achievements",
+JSON.stringify(achievements)
+);
+
+localStorage.setItem(
+"highway_records",
+JSON.stringify(records)
+);
+
+}
+
+function getPlayerLevel(){
+
+return Math.floor(playerXP / 100)+1;
+
+}
     let unlockedCars = JSON.parse(localStorage.getItem('highway_unlocked_pc') || '["compact"]');
     let equippedCarId = localStorage.getItem('highway_equipped_pc') || 'compact';
     let fuelLevel = Math.max(0, Math.min(100, Number(localStorage.getItem('highway_fuel_pc') ?? 100)));
@@ -1921,6 +2376,9 @@
     } catch (e) {
       carUpgradeLevels = {};
     }
+
+    // 차량 고유 스킬 재사용 대기시간
+    let armorSkillCooldown = 0;
 
     const UPGRADE_COSTS = [100, 150, 200];
     const UPGRADE_SPEED_BONUS = 15;
@@ -1962,6 +2420,141 @@
       const d = String(now.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
     }
+
+    // --- DAILY MISSIONS: local-date reset, saved progress, one-time rewards ---
+    const DAILY_MISSION_STORAGE_KEY = 'highway_daily_missions_v1';
+    const DAILY_MISSION_DIFFICULTIES = [
+      { id: 'easy', title: '쉬움', color: 'emerald', missions: [
+        { id: 'easy_coins', metric: 'coins', title: '동전 줍기', desc: '주행 중 코인 10개 획득', goal: 10, reward: 50, icon: '🪙' },
+        { id: 'easy_distance', metric: 'distance', title: '가벼운 드라이브', desc: '오늘 누적 20km 주행', goal: 20, reward: 75, icon: '🚗' }
+      ]},
+      { id: 'normal', title: '보통', color: 'sky', missions: [
+        { id: 'normal_coins', metric: 'coins', title: '알뜰한 운전자', desc: '주행 중 코인 40개 획득', goal: 40, reward: 120, icon: '💰' },
+        { id: 'normal_victory', metric: 'victory', title: '첫 완주', desc: '노선 1회 완주하기', goal: 1, reward: 180, icon: '🏁' }
+      ]},
+      { id: 'hard', title: '어려움', color: 'orange', missions: [
+        { id: 'hard_distance', metric: 'distance', title: '전국 일주 도전', desc: '오늘 누적 100km 주행', goal: 100, reward: 300, icon: '🛣️' },
+        { id: 'hard_victory', metric: 'victory', title: '베테랑 드라이버', desc: '노선 2회 완주하기', goal: 2, reward: 350, icon: '🏆' }
+      ]},
+      { id: 'extreme', title: '완전 어려움', color: 'rose', missions: [
+        { id: 'extreme_coins', metric: 'coins', title: '코인 마스터', desc: '주행 중 코인 150개 획득', goal: 150, reward: 700, icon: '👑' },
+        { id: 'extreme_distance', metric: 'distance', title: '초장거리 레전드', desc: '오늘 누적 250km 주행', goal: 250, reward: 900, icon: '🔥' }
+      ]}
+    ];
+    const DAILY_MISSION_DEFINITIONS = DAILY_MISSION_DIFFICULTIES.flatMap(level => level.missions);
+
+    function loadDailyMissionState() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(DAILY_MISSION_STORAGE_KEY) || 'null'); } catch (e) {}
+      if (!saved || saved.date !== getLocalDateKey()) {
+        saved = {
+          date: getLocalDateKey(),
+          progress: { coins: 0, distance: 0, victory: 0 },
+          claimed: []
+        };
+        localStorage.setItem(DAILY_MISSION_STORAGE_KEY, JSON.stringify(saved));
+      }
+      if (!saved.progress) saved.progress = { coins: 0, distance: 0, victory: 0 };
+      if (!Array.isArray(saved.claimed)) saved.claimed = [];
+      return saved;
+    }
+
+    let dailyMissionState = loadDailyMissionState();
+
+    function saveDailyMissionState() {
+      dailyMissionState.date = getLocalDateKey();
+      localStorage.setItem(DAILY_MISSION_STORAGE_KEY, JSON.stringify(dailyMissionState));
+    }
+
+    function refreshDailyMissionDate() {
+      if (dailyMissionState.date !== getLocalDateKey()) {
+        dailyMissionState = loadDailyMissionState();
+      }
+    }
+
+    function addDailyMissionProgress(metric, amount) {
+      refreshDailyMissionDate();
+      if (!['coins', 'distance', 'victory'].includes(metric) || !Number.isFinite(amount) || amount <= 0) return;
+      const current = Number(dailyMissionState.progress[metric] || 0);
+      const next = current + amount;
+      dailyMissionState.progress[metric] = next;
+      // 거리는 매 프레임 계산되므로 정수 km가 바뀔 때만 저장하고 화면을 갱신합니다.
+      const displayUnitChanged = metric === 'distance'
+        ? Math.floor(current) !== Math.floor(next)
+        : amount > 0;
+      if (displayUnitChanged) {
+        saveDailyMissionState();
+        renderDailyMissions();
+      }
+    }
+
+    function renderDailyMissions() {
+      const list = document.getElementById('dailyMissionList');
+      if (!list) return;
+      refreshDailyMissionDate();
+      const levelStyles = {
+        easy: 'text-emerald-300 border-emerald-500/40',
+        normal: 'text-sky-300 border-sky-500/40',
+        hard: 'text-orange-300 border-orange-500/40',
+        extreme: 'text-rose-300 border-rose-500/40'
+      };
+      list.innerHTML = DAILY_MISSION_DIFFICULTIES.map(level => {
+        const cards = level.missions.map(mission => {
+          const progress = Math.min(mission.goal, Number(dailyMissionState.progress[mission.metric] || 0));
+          const completed = progress >= mission.goal;
+          const claimed = dailyMissionState.claimed.includes(mission.id);
+          const percent = Math.round((progress / mission.goal) * 100);
+          const progressText = mission.metric === 'distance'
+            ? `${Math.floor(progress)} / ${mission.goal} km`
+            : mission.metric === 'victory'
+              ? `${Math.floor(progress)} / ${mission.goal}회`
+              : `${Math.floor(progress)} / ${mission.goal}개`;
+          const button = claimed
+            ? '<span class="text-[10px] font-black text-emerald-300 px-2 py-1">✓ 보상 수령 완료</span>'
+            : completed
+              ? `<button data-claim-mission="${mission.id}" class="text-[10px] font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-2 py-1 rounded-lg">보상 받기</button>`
+              : '<span class="text-[10px] text-slate-500 px-2 py-1">진행 중</span>';
+          return `
+            <div class="bg-slate-950/80 border ${claimed ? 'border-emerald-500/30' : completed ? 'border-amber-400/60' : 'border-slate-700'} rounded-xl p-2">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-xs font-black text-white">${mission.icon} ${mission.title}</span>
+                <span class="text-[10px] font-bold text-amber-300">+${mission.reward} 코인</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-1">${mission.desc}</div>
+              <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
+                <div class="h-full ${claimed ? 'bg-emerald-400' : 'bg-amber-400'} rounded-full" style="width:${percent}%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1"><span class="text-[10px] text-slate-300">${progressText}</span>${button}</div>
+            </div>`;
+        }).join('');
+        return `
+          <section class="md:col-span-3 mb-1">
+            <div class="text-xs font-black ${levelStyles[level.id]} border-b pb-1 mb-2">${level.title} 난이도</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${cards}</div>
+          </section>`;
+      }).join('');
+    }
+
+    function claimDailyMission(id) {
+      refreshDailyMissionDate();
+      const mission = DAILY_MISSION_DEFINITIONS.find(item => item.id === id);
+      if (!mission || dailyMissionState.claimed.includes(id)) return;
+      if (Number(dailyMissionState.progress[mission.metric] || 0) < mission.goal) {
+        alert('아직 미션을 완료하지 않았습니다!');
+        return;
+      }
+      dailyMissionState.claimed.push(id);
+      totalCoins += mission.reward;
+      saveDailyMissionState();
+      saveUserData();
+      renderDailyMissions();
+      alert(`${mission.title} 완료! ${mission.reward} 코인을 받았습니다.`);
+    }
+
+    document.getElementById('dailyMissionList').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-claim-mission]');
+      if (button) claimDailyMission(button.dataset.claimMission);
+    });
 
     function updateReviveButton() {
       const button = document.getElementById('reviveBtn');
@@ -2152,6 +2745,10 @@
     const victoryOverlay = document.getElementById('victoryOverlay');
     const routeListContainer = document.getElementById('routeListContainer');
     const carGrid = document.getElementById('carGrid');
+    const carDexModal = document.getElementById('carDexModal');
+    const carDexGrid = document.getElementById('carDexGrid');
+    const carDexSearch = document.getElementById('carDexSearch');
+    const carDexFilter = document.getElementById('carDexFilter');
 
     // UI Buttons
     const startBtn = document.getElementById('startBtn');
@@ -2290,6 +2887,8 @@
       if (gameState === 'START') {
         player.x = 120;
         player.y = roadTop + laneHeight * 1.5 - player.height / 2;
+      } else if (gameState === 'PLAYING') {
+        // 화면 크기 변경으로 도로 경계를 벗어난 경우 다음 게임 프레임에서 판정합니다.
       }
     }
 
@@ -2304,6 +2903,9 @@
       const equipped = getEquippedCar();
       document.getElementById('equippedCarName').textContent = equipped.name;
       document.getElementById('equippedCarPerk').textContent = equipped.perkText;
+      const skill = getCarSkill(equipped);
+      const skillElement = document.getElementById('equippedCarSkill');
+      if (skillElement) skillElement.textContent = `${skill.icon} 특수 스킬: ${skill.name} · ${skill.description}`;
       document.getElementById('equippedCarIcon').style.color = equipped.color;
       updateFuelUI();
     }
@@ -2399,6 +3001,78 @@
       alert(`${car.name} 업그레이드 완료! Lv.${level + 1}\n최고속도 +${UPGRADE_SPEED_BONUS}km/h, 가속력 +${UPGRADE_ACCEL_BONUS}, 연료/배터리 효율 +8%`);
     }
 
+
+    function renderCarDex() {
+      const ownedCount = CAR_DATABASE.filter(car => unlockedCars.includes(car.id)).length;
+      const totalCount = CAR_DATABASE.length;
+      const percent = totalCount ? Math.round(ownedCount / totalCount * 100) : 0;
+      document.getElementById('carDexProgress').textContent = `${ownedCount} / ${totalCount}대 (${percent}%)`;
+      document.getElementById('carDexProgressBar').style.width = `${percent}%`;
+      document.getElementById('carDexEquipped').textContent = getEquippedCar().name;
+
+      const keyword = (carDexSearch?.value || '').trim().toLowerCase();
+      const filter = carDexFilter?.value || 'all';
+      const filteredCars = CAR_DATABASE.filter(car => {
+        const owned = unlockedCars.includes(car.id);
+        const skillType = getCarSkillType(car);
+        const matchesKeyword = !keyword || car.name.toLowerCase().includes(keyword) || car.id.toLowerCase().includes(keyword);
+        const matchesFilter =
+          filter === 'all' ||
+          (filter === 'owned' && owned) ||
+          (filter === 'locked' && !owned) ||
+          filter === skillType;
+        return matchesKeyword && matchesFilter;
+      });
+
+      carDexGrid.innerHTML = '';
+      if (!filteredCars.length) {
+        carDexGrid.innerHTML = '<div class="col-span-full text-center text-sm text-slate-400 py-10">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      filteredCars.forEach(car => {
+        const owned = unlockedCars.includes(car.id);
+        const equipped = equippedCarId === car.id;
+        const skill = getCarSkill(car);
+        const upgradeLevel = getCarUpgradeLevel(car.id);
+        const range = car.rangeKm || 2000;
+        const card = document.createElement('article');
+        card.className = `rounded-xl border p-3 ${equipped ? 'bg-amber-950/30 border-amber-400/70' : owned ? 'bg-slate-900 border-emerald-500/30' : 'bg-slate-900/70 border-slate-700'}`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 shrink-0 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl" style="color:${car.color}">
+                <i class="fa-solid ${car.icon}"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="font-black text-sm text-white break-words">${car.name}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${car.isElectric ? '전기차' : '내연기관 / 하이브리드'} · ${owned ? `강화 Lv.${upgradeLevel}/3` : '미수집'}</div>
+              </div>
+            </div>
+            <span class="shrink-0 text-[10px] font-black px-2 py-1 rounded-lg ${equipped ? 'bg-amber-400 text-slate-950' : owned ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+              ${equipped ? '장착중' : owned ? '보유' : '미보유'}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <div class="bg-slate-950/70 rounded-lg p-2"><div class="text-[10px] text-slate-500">최고속도</div><strong class="text-sm text-cyan-300">${car.maxSpeed} km/h</strong></div>
+            <div class="bg-slate-950/70 rounded-lg p-2"><div class="text-[10px] text-slate-500">가속력</div><strong class="text-sm text-white">${car.accel}</strong></div>
+            <div class="bg-slate-950/70 rounded-lg p-2"><div class="text-[10px] text-slate-500">내구도</div><strong class="text-sm text-white">❤️ ${car.lives}</strong></div>
+            <div class="bg-slate-950/70 rounded-lg p-2"><div class="text-[10px] text-slate-500">기본 주행 가능 거리</div><strong class="text-sm text-white">${range.toLocaleString()} km</strong></div>
+          </div>
+          <div class="mt-3 rounded-lg bg-slate-950/70 border border-amber-500/20 p-2">
+            <div class="text-[10px] text-amber-300 font-black">${skill.icon} ${skill.name}</div>
+            <div class="text-[11px] text-slate-300 mt-1">${skill.description}</div>
+          </div>
+          <div class="flex justify-between items-center gap-2 mt-3 text-[10px]">
+            <span class="text-slate-400">${car.perkText}</span>
+            <strong class="text-amber-300 whitespace-nowrap">${owned ? '수집 완료' : `${Number(car.price || 0).toLocaleString()} 코인`}</strong>
+          </div>
+        `;
+        carDexGrid.appendChild(card);
+      });
+    }
+
     function renderGarageGrid() {
       carGrid.innerHTML = '';
       CAR_DATABASE.forEach(car => {
@@ -2425,6 +3099,7 @@
                 <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-arcade">속도:${car.maxSpeed}</span>
               </div>
               <div class="text-[10px] text-cyan-300 mt-0.5">${car.perkText}</div>
+              <div class="text-[10px] text-amber-300 mt-1 font-bold">${getCarSkill(car).icon} ${getCarSkill(car).name}: ${getCarSkill(car).description}</div>
             </div>
           </div>
 
@@ -2618,6 +3293,7 @@
       particles = [];
       floatingTexts = [];
       invulnerableTimer = 0;
+      armorSkillCooldown = 0;
 
       updateProgressUI();
       updateCoinsUI();
@@ -2643,14 +3319,29 @@
       requestAnimationFrame(gameLoop);
     }
 
+
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
     victoryRestartBtn.addEventListener('click', startGame);
 
     openGarageBtn.addEventListener('click', () => {
+      carDexModal.classList.add('hidden');
       renderGarageGrid();
       garageModal.classList.remove('hidden');
     });
+
+    const openCarDexBtn = document.getElementById('openCarDexBtn');
+    const closeCarDexBtn = document.getElementById('closeCarDexBtn');
+    const carDexDoneBtn = document.getElementById('carDexDoneBtn');
+    function closeCarDex() { carDexModal.classList.add('hidden'); }
+    openCarDexBtn.addEventListener('click', () => {
+      renderCarDex();
+      carDexModal.classList.remove('hidden');
+    });
+    closeCarDexBtn.addEventListener('click', closeCarDex);
+    carDexDoneBtn.addEventListener('click', closeCarDex);
+    carDexSearch.addEventListener('input', renderCarDex);
+    carDexFilter.addEventListener('change', renderCarDex);
 
     closeGarageBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
     garageDoneBtn.addEventListener('click', () => garageModal.classList.add('hidden'));
@@ -2660,6 +3351,7 @@
 
     changeRouteBtn.addEventListener('click', () => {
       gameOverOverlay.classList.add('hidden');
+      renderDailyMissions();
       startOverlay.classList.remove('hidden');
     });
 
@@ -2743,18 +3435,32 @@
       if (keys.down) player.y += verticalSpeed;
 
       // Speed Adjustments
-      if (keys.right || keys.boost) player.speed = Math.min(player.maxSpeed + (keys.boost ? 30 : 0), player.speed + player.accel * dt * (keys.boost ? 1.5 : 1));
+      const vehicleSkillType = getCarSkillType(equipped);
+      const accelerationSkillMultiplier = vehicleSkillType === 'acceleration' ? 1.2 : 1;
+      if (keys.right || keys.boost) {
+        player.speed = Math.min(
+          player.maxSpeed + (keys.boost ? 30 : 0),
+          player.speed + player.accel * dt * (keys.boost ? 1.5 : 1) * accelerationSkillMultiplier
+        );
+      }
       else if (keys.left) player.speed = Math.max(player.minSpeed, player.speed - 90 * dt);
       else {
         if (player.speed > 120) player.speed -= 30 * dt;
         if (player.speed < 120) player.speed += 30 * dt;
       }
+      // 교통 색상은 안내용 정보이며, 빨간색 정체 구간에서도 차량 속도와 주행은 제한하지 않습니다.
 
-      player.y = Math.max(roadTop + 4, Math.min(roadBottom - player.height - 4, player.y));
+      // 도로 바깥으로 나가면 즉시 게임 오버됩니다.
+      // 차선 변경은 허용하지만, 차량 전체가 도로 경계 안에 있어야 합니다.
+      if (player.y < roadTop || player.y + player.height > roadBottom) {
+        triggerGameOver('도로 경계를 벗어났습니다. 도로 위에서만 주행할 수 있습니다.');
+        return;
+      }
 
       const activeRoute = ROUTE_DATA[selectedRouteIndex];
       const distanceGained = (player.speed / 3600) * dt * 28;
       currentDistance += distanceGained;
+      addDailyMissionProgress('distance', distanceGained);
       const restDistanceLeft = nextRestStopKm - currentDistance;
       restStopRoadVisible = restDistanceLeft <= 15 && restDistanceLeft >= -5;
       const restEntryButton = document.getElementById('enterRestStopRoad');
@@ -2767,7 +3473,9 @@
       // 기본 차량은 2,000km, 울트라 프리미엄카는 3,000km 주행 가능. 업그레이드 효율 보너스 적용
       const upgradeStats = getCarUpgradeStats(equipped);
       const baseRangeKm = equipped.rangeKm || 2000;
-      const fuelUsePerKm = (100 / baseRangeKm) * (1 - upgradeStats.fuelEfficiency);
+      const vehicleEfficiencyBonus = vehicleSkillType === 'efficiency' ? 0.20 : 0;
+      const combinedEfficiency = Math.min(0.75, 1 - (1 - upgradeStats.fuelEfficiency) * (1 - vehicleEfficiencyBonus));
+      const fuelUsePerKm = (100 / baseRangeKm) * (1 - combinedEfficiency);
       fuelLevel = Math.max(0, fuelLevel - distanceGained * fuelUsePerKm);
       updateFuelUI();
       if (fuelLevel <= 0) {
@@ -2783,6 +3491,7 @@
       }
 
       if (invulnerableTimer > 0) invulnerableTimer -= dt;
+      if (armorSkillCooldown > 0) armorSkillCooldown = Math.max(0, armorSkillCooldown - dt);
 
       roadOffset += (player.speed * dt * 10);
       if (roadOffset >= 40) roadOffset %= 40;
@@ -2826,6 +3535,7 @@
           const earned = Number(((1 + (equipped.coinBonus || 0)) * (equipped.coinMultiplier || 1) * getRandomEventCoinMultiplier()).toFixed(2));
           sessionCoins += earned;
           totalCoins += earned;
+          addDailyMissionProgress('coins', 1);
           saveUserData();
           audio.playCoin();
           addFloatingText(c.x, c.y, `+${earned}`, '#f59e0b');
@@ -2861,6 +3571,17 @@
     }
 
     function handleCrash(obstacle) {
+      const equipped = getEquippedCar();
+
+      // 강화 차체: 20초마다 한 번 충돌을 무효화합니다.
+      if (getCarSkillType(equipped) === 'armor' && armorSkillCooldown <= 0) {
+        audio.playCoin();
+        armorSkillCooldown = 20;
+        invulnerableTimer = 1.2;
+        addFloatingText(player.x + player.width / 2, player.y - 8, '🛡️ 충돌 방어!', '#38bdf8');
+        return;
+      }
+
       audio.playCrash();
       lives--;
       updateLivesUI();
@@ -2899,6 +3620,7 @@
     document.getElementById('reviveBtn').addEventListener('click', reviveAfterCrash);
 
     function triggerVictory() {
+      addDailyMissionProgress('victory', 1);
       document.getElementById('restStopModal').classList.add('hidden');
       gameState = 'VICTORY';
       clearInterval(timerInterval);
@@ -3262,7 +3984,7 @@
 
       ctx.restore();
     }
-S
+
     // --- 13. INITIALIZATION ---
     window.onload = () => {
       saveUserData();
@@ -3271,8 +3993,1295 @@ S
       resizeCanvas();
       setupPCControls();
       render();
+      renderDailyMissions();
       updateWeatherTimer();
     };
+
+    
   </script>
+  
+  <!-- ========================================================================= -->
+<!-- 🏆 [복붙용] 업적(칭호) 시스템 올인원 코드 — </body> 바로 위에 붙여넣으세요! -->
+<!-- ========================================================================= -->
+<style>
+  #ach-floating-box {
+    position: fixed; bottom: 16px; left: 16px; z-index: 9999;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(245, 158, 11, 0.5);
+    padding: 8px 14px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    font-family: sans-serif; color: #fff;
+  }
+  #ach-open-btn {
+    background: #d97706; color: #fff; border: none; border-radius: 999px;
+    padding: 5px 12px; font-weight: bold; font-size: 12px; cursor: pointer;
+  }
+  #ach-open-btn:hover { background: #f59e0b; }
+  #ach-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;
+    display: none; align-items: center; gap: 12px;
+    background: rgba(15, 23, 42, 0.96); border: 2px solid #fbbf24;
+    padding: 12px 22px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    font-family: sans-serif; color: #fff;
+  }
+  #ach-modal {
+    position: fixed; inset: 0; background: rgba(2, 6, 23, 0.88); z-index: 10001;
+    display: none; align-items: center; justify-content: center; padding: 16px;
+    font-family: sans-serif;
+  }
+  .ach-card {
+    max-width: 460px; width: 100%; background: #0f172a; border: 1px solid #334155;
+    border-radius: 18px; padding: 20px; color: #fff; max-height: 82vh;
+    display: flex; flex-direction: column;
+  }
+  #ach-list {
+    overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+    margin: 14px 0; padding-right: 4px;
+  }
+</style>
+
+<!-- 좌측 하단 플로팅 칭호 배지 & 업적 버튼 (기존 UI 안 건드림) -->
+<div id="ach-floating-box">
+  <span style="font-size:12px; color:#94a3b8;">칭호:</span>
+  <strong id="ach-current-title" style="font-size:13px; color:#fbbf24;">초보 운전자</strong>
+  <button id="ach-open-btn" onclick="AchSystem.open()">🏆 업적</button>
+</div>
+
+<!-- 업적 달성 시 상단 알림 배너 -->
+<div id="ach-toast">
+  <span style="font-size:24px;">🏆</span>
+  <div>
+    <div style="font-size:11px; font-weight:bold; color:#fbbf24;">업적 달성! 새 칭호 해금</div>
+    <div id="ach-toast-title" style="font-size:15px; font-weight:900;">칭호명</div>
+  </div>
+</div>
+
+<!-- 업적 및 칭호 선택 창 -->
+<div id="ach-modal">
+  <div class="ach-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:10px;">
+      <div>
+        <div style="font-size:18px; font-weight:900;">🏆 업적 및 칭호</div>
+        <div style="font-size:12px; color:#94a3b8;">업적을 달성하고 원하는 칭호를 장착하세요!</div>
+      </div>
+      <button onclick="AchSystem.close()" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;">×</button>
+    </div>
+    <div id="ach-list"></div>
+    <button onclick="AchSystem.close()" style="width:100%; padding:10px; background:#1e293b; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">닫기</button>
+  </div>
+</div>
+
+<script>
+const AchSystem = (() => {
+  const LIST = [
+    { id: 'start',     title: '초보 운전자',     desc: '게임을 처음 실행했습니다.',         check: (s) => true },
+    { id: 'boost_5',   title: '질주 본능',       desc: '부스터(Space)를 5회 사용했습니다.', check: (s) => s.boosts >= 5 },
+    { id: 'boost_20',  title: '음속의 제왕',     desc: '부스터(Space)를 20회 사용했습니다.',check: (s) => s.boosts >= 20 },
+    { id: 'time_1m',   title: '도로 위의 베테랑', desc: '누적 주행 시간 1분을 달성했습니다.',check: (s) => s.playSec >= 60 },
+    { id: 'time_5m',   title: '장거리 트러커',   desc: '누적 주행 시간 5분을 달성했습니다.',check: (s) => s.playSec >= 300 },
+    { id: 'coin_500',  title: '알부자 드라이버', desc: '보유 코인 500개를 돌파했습니다.',   check: (s) => s.maxCoins >= 500 },
+    { id: 'coin_2000', title: '하이웨이 재벌',   desc: '보유 코인 2,000개를 돌파했습니다.', check: (s) => s.maxCoins >= 2000 },
+    { id: 'all_ach',   title: '전설의 레이서',   desc: '다른 업적을 5개 이상 달성했습니다.',check: (s) => s.unlockedCount >= 5 }
+  ];
+
+  let stats = JSON.parse(localStorage.getItem('ach_stats_v1')) || { boosts: 0, playSec: 0, maxCoins: 0 };
+  let unlocked = JSON.parse(localStorage.getItem('ach_unlocked_v1')) || ['start'];
+  let equipped = localStorage.getItem('ach_equipped_v1') || '초보 운전자';
+
+  function save() {
+    localStorage.setItem('ach_stats_v1', JSON.stringify(stats));
+    localStorage.setItem('ach_unlocked_v1', JSON.stringify(unlocked));
+    localStorage.setItem('ach_equipped_v1', equipped);
+  }
+
+  function showToast(title) {
+    const t = document.getElementById('ach-toast');
+    document.getElementById('ach-toast-title').textContent = `[${title}]`;
+    t.style.display = 'flex';
+    setTimeout(() => { t.style.display = 'none'; }, 3200);
+  }
+
+  function check() {
+    stats.unlockedCount = unlocked.length;
+    let newAch = null;
+    LIST.forEach(a => {
+      if (!unlocked.includes(a.id) && a.check(stats)) {
+        unlocked.push(a.id);
+        newAch = a;
+      }
+    });
+    if (newAch) {
+      save();
+      showToast(newAch.title);
+    }
+  }
+
+  function updateUI() {
+    document.getElementById('ach-current-title').textContent = equipped;
+  }
+
+  function render() {
+    const box = document.getElementById('ach-list');
+    box.innerHTML = LIST.map(a => {
+      const ok = unlocked.includes(a.id);
+      const eq = equipped === a.title;
+      return `
+        <div style="padding:12px; border-radius:12px; border:1px solid ${ok ? '#f59e0b66' : '#1e293b'}; background:${ok ? '#1e293b' : '#020617'}; opacity:${ok ? 1 : 0.55}; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-weight:bold; font-size:14px; color:${ok ? '#fbbf24' : '#94a3b8'};">
+              ${ok ? '🏅' : '🔒'} ${a.title} ${eq ? '<span style="font-size:10px; background:#f59e0b; color:#000; padding:2px 6px; border-radius:99px; margin-left:4px;">장착중</span>' : ''}
+            </div>
+            <div style="font-size:12px; color:#94a3b8; margin-top:3px;">${a.desc}</div>
+          </div>
+          <div>
+            ${ok
+              ? (eq
+                  ? `<button disabled style="padding:6px 10px; background:#334155; color:#cbd5e1; border:none; border-radius:8px; font-size:12px; font-weight:bold;">사용중</button>`
+                  : `<button onclick="AchSystem.equip('${a.title}')" style="padding:6px 12px; background:#f59e0b; color:#000; border:none; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;">장착</button>`)
+              : `<span style="font-size:11px; color:#64748b; font-weight:bold;">미달성</span>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 기존 코드 수정 없이 자동 감지(스페이스바 부스터, 플레이 시간, 화면 내 코인 수치)
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') { stats.boosts++; save(); check(); }
+  });
+
+  setInterval(() => {
+    stats.playSec++;
+    // 화면 텍스트에서 코인 숫자 자동 감지 (기존 변수명 몰라도 작동)
+    const bodyText = document.body.innerText || '';
+    const coinMatch = bodyText.match(/(?:코인|COIN|💰)\s*[:：]?\s*([0-9,]+)/i);
+    if (coinMatch) {
+      const val = parseInt(coinMatch[1].replace(/,/g, ''), 10);
+      if (!isNaN(val) && val > stats.maxCoins) stats.maxCoins = val;
+    }
+    save();
+    check();
+  }, 1000);
+
+  updateUI();
+  return {
+    open: () => { render(); document.getElementById('ach-modal').style.display = 'flex'; },
+    close: () => { document.getElementById('ach-modal').style.display = 'none'; },
+    equip: (t) => { equipped = t; save(); updateUI(); render(); },
+    addClear: () => { stats.clears = (stats.clears || 0) + 1; save(); check(); } // 완주 함수에 넣으면 완주 업적도 연동 가능
+  };
+})();
+
+<!-- ========================================================================= -->
+</script>
+<script>window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space',' ','KeyW','KeyS','KeyA','KeyD'].includes(e.code)||['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault()},{passive:false});document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});</script>
+
+<script>  
+(()=>{
+  // 1. 기존 날씨 시스템에 '야간 주행(헤드라이트)' 및 '천둥번개' 효과 확장 추가
+  if (typeof WEATHER_TYPES !== 'undefined') {
+    // 중복 추가 방지 체크 후 야간/천둥 날씨 추가
+    if (!WEATHER_TYPES.some(w => w.name === '야간 주행')) {
+      WEATHER_TYPES.push(
+        { name: '야간 주행', icon: '🌙', cls: 'night', desc: '밤 도로입니다. 헤드라이트 불빛으로 전방을 비춥니다!' },
+        { name: '천둥번개', icon: '⚡', cls: 'thunder', desc: '번개가 번쩍이며 비가 몰아치는 폭풍우 구간입니다!' }
+      );
+    }
+  }
+
+  // 2. 야간 및 천둥 날씨용 시각 효과 스타일 동적 주입
+  const st = document.createElement('style');
+  st.textContent = `
+    #weatherVisual.night { background: rgba(2, 6, 23, 0.88); backdrop-filter: blur(0.5px); }
+    #weatherVisual.thunder { background: rgba(15, 23, 42, 0.72); animation: thunderFlash 4s infinite; }
+    @keyframes thunderFlash {
+      0%, 95%, 98% { opacity: 0.2; background: rgba(15, 23, 42, 0.72); }
+      96%, 99% { opacity: 0.95; background: rgba(255, 255, 255, 0.85); box-shadow: inset 0 0 100px #fff; }
+    }
+  `;
+  document.head.appendChild(st);
+
+  // 3. 야간/천둥 주행 시 플레이어 차량 주변 헤드라이트(원형 시야) 렌더링 오버레이 추가
+  const origR = window.render;
+  if (origR) {
+    window.render = function() {
+      origR.apply(this, arguments);
+      const activeW = typeof weatherCurrent !== 'undefined' ? weatherCurrent : null;
+      if (activeW && (activeW.cls === 'night' || activeW.cls === 'thunder')) {
+        ctx.save();
+        ctx.fillStyle = activeW.cls === 'night' ? 'rgba(2, 6, 23, 0.86)' : 'rgba(5, 10, 25, 0.75)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const pX = player.x + player.width / 2;
+        const pY = player.y + player.height / 2;
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        // 자동차 앞쪽을 비추는 헤드라이트 원형 조명 효과
+        ctx.arc(pX + 30, pY, 140, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    };
+  }
+
+  // 4. 고속도로 가상 라디오 / BGM 안내 토스트 메시지 생성기
+  const radioBox = document.createElement('div');
+  radioBox.style.cssText = 'position:fixed; bottom:16px; right:16px; z-index:9998; background:rgba(15,23,42,0.92); border:1px solid #00ffff; color:#00ffff; padding:8px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.4); display:flex; align-items:center; gap:8px;';
+  radioBox.innerHTML = `<span>📻 고속도로 가상 라디오:</span><span id="radio-track" style="color:#fff; font-weight:normal;">주행 중 안전운전 방송 송출 중...</span>`;
+  document.body.appendChild(radioBox);
+
+  const tracks = [
+    '🎵 [채널 1] 신나는 드라이브 팝 믹스',
+    '🎶 [채널 2] 전국 고속도로 실시간 교통안전 정보',
+    '📻 [채널 3] 감성 충만 칠(Chill) 로드 팝',
+    '🎧 [채널 4] 레이싱 파워 비트 BGM'
+  ];
+  setInterval(() => {
+    const t = tracks[Math.floor(Math.random() * tracks.length)];
+    const el = document.getElementById('radio-track');
+    if (el) el.textContent = t;
+  }, 45000); // 45초마다 채널/곡명 변경 안내
+})();
+</script>
+
+<script>
+  // 키보드 방향키, WASD, 스페이스바 및 모바일 터치 시 화면 스크롤/흔들림 완벽 차단
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', ' ', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+</script>
+
+<!-- 전 세계 140+ 도시(기존 + 신규 100개) 선택 및 자동 완성/삭제 기능이 포함된 모달 창 -->
+<div id="customRouteModal" class="hidden fixed inset-0 z-[110] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="w-full max-w-lg rounded-2xl border border-cyan-400/50 bg-slate-900 p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl border border-cyan-500/30">🌐</div>
+        <div>
+          <h2 class="text-lg font-black text-white">140+ 글로벌 도시 커스텀 노선</h2>
+          <p class="text-xs text-slate-400">대규모 확장된 140여 개의 전 세계 도시로 나만의 노선을 만드세요.</p>
+        </div>
+      </div>
+      <button id="closeCustomModal" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
+    </div>
+
+    <div class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">노선 제목</label>
+        <input id="customRouteTitle" type="text" value="울트라 월드 투어" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">출발지 도시</label>
+          <select id="customRouteStartSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+            <!-- JS 동적 로드 -->
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">목적지 도시</label>
+          <select id="customRouteEndSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+            <!-- JS 동적 로드 -->
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">자동 추천 및 경유지 (다중 선택 가능)</label>
+        <select id="customRouteWaypointsSelect" multiple class="w-full h-32 bg-slate-950 border border-slate-700 rounded-xl p-2 text-white outline-none focus:border-cyan-400 text-sm">
+          <!-- JS 동적 로드 -->
+        </select>
+        <p class="text-[10px] text-cyan-400 mt-1">✨ 출발/목적지를 선택하면 어울리는 경유지들이 자동으로 추천됩니다!</p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">총 주행 거리 (km)</label>
+        <input id="customRouteDist" type="number" min="50" max="25000" value="1500" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+    </div>
+
+    <button id="saveCustomRouteBtn" class="w-full mt-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-xl shadow-lg transition text-sm">
+      대규모 월드 노선 생성 및 주행 시작
+    </button>
+  </div>
+</div>
+
+<script>
+(()=>{
+  // 기존 도시 + 신규 100개 추가된 총 140여 개 글로벌 도시 풀
+  const ALL_WORLD_CITIES = [
+    // --- 대한민국 및 주변 ---
+    { name: '서울', region: '대한민국', group: 'kr' },
+    { name: '부산', region: '대한민국', group: 'kr' },
+    { name: '인천', region: '대한민국', group: 'kr' },
+    { name: '대구', region: '대한민국', group: 'kr' },
+    { name: '대전', region: '대한민국', group: 'kr' },
+    { name: '광주', region: '대한민국', group: 'kr' },
+    { name: '울산', region: '대한민국', group: 'kr' },
+    { name: '강릉', region: '대한민국', group: 'kr' },
+    { name: '속초', region: '대한민국', group: 'kr' },
+    { name: '제주도', region: '대한민국', group: 'kr' },
+    { name: '전주', region: '대한민국', group: 'kr' },
+    { name: '경주', region: '대한민국', group: 'kr' },
+    { name: '춘천', region: '대한민국', group: 'kr' },
+    { name: '여수', region: '대한민국', group: 'kr' },
+    { name: '거제', region: '대한민국', group: 'kr' },
+    { name: '수원', region: '대한민국', group: 'kr' },
+    { name: '청주', region: '대한민국', group: 'kr' },
+    { name: '창원', region: '대한민국', group: 'kr' },
+    { name: '포항', region: '대한민국', group: 'kr' },
+    { name: '목포', region: '대한민국', group: 'kr' },
+    { name: '평양', region: '북방', group: 'kr' },
+    { name: '개성', region: '북방', group: 'kr' },
+    { name: '신의주', region: '북방', group: 'kr' },
+    { name: '원산', region: '북방', group: 'kr' },
+
+    // --- 아시아 ---
+    { name: '도쿄', region: '일본', group: 'asia' },
+    { name: '오사카', region: '일본', group: 'asia' },
+    { name: '교토', region: '일본', group: 'asia' },
+    { name: '후쿠오카', region: '일본', group: 'asia' },
+    { name: '삿포로', region: '일본', group: 'asia' },
+    { name: '나고야', region: '일본', group: 'asia' },
+    { name: '오키나와', region: '일본', group: 'asia' },
+    { name: '히로시마', region: '일본', group: 'asia' },
+    { name: '베이징', region: '중국', group: 'asia' },
+    { name: '상하이', region: '중국', group: 'asia' },
+    { name: '광저우', region: '중국', group: 'asia' },
+    { name: '선전', region: '중국', group: 'asia' },
+    { name: '청두', region: '중국', group: 'asia' },
+    { name: '시안', region: '중국', group: 'asia' },
+    { name: '항저우', region: '중국', group: 'asia' },
+    { name: '칭다오', region: '중국', group: 'asia' },
+    { name: '하얼빈', region: '중국', group: 'asia' },
+    { name: '홍콩', region: '중국', group: 'asia' },
+    { name: '마카오', region: '중국', group: 'asia' },
+    { name: '타이베이', region: '대만', group: 'asia' },
+    { name: '가오슝', region: '대만', group: 'asia' },
+    { name: '싱가포르', region: '싱가포르', group: 'asia' },
+    { name: '방콕', region: '태국', group: 'asia' },
+    { name: '치앙마이', region: '태국', group: 'asia' },
+    { name: '푸켓', region: '태국', group: 'asia' },
+    { name: '하노이', region: '베트남', group: 'asia' },
+    { name: '호치민', region: '베트남', group: 'asia' },
+    { name: '다낭', region: '베트남', group: 'asia' },
+    { name: '나트랑', region: '베트남', group: 'asia' },
+    { name: '쿠알라룸푸르', region: '말레이시아', group: 'asia' },
+    { name: '페낭', region: '말레이시아', group: 'asia' },
+    { name: '자카르타', region: '인도네시아', group: 'asia' },
+    { name: '발리', region: '인도네시아', group: 'asia' },
+    { name: '수라바야', region: '인도네시아', group: 'asia' },
+    { name: '마닐라', region: '필리핀', group: 'asia' },
+    { name: '세부', region: '필리핀', group: 'asia' },
+    { name: '뉴델리', region: '인도', group: 'asia' },
+    { name: '뭄바이', region: '인도', group: 'asia' },
+    { name: '뱅갈루루', region: '인도', group: 'asia' },
+    { name: '콜카타', region: '인도', group: 'asia' },
+    { name: '울란바토르', region: '몽골', group: 'asia' },
+    { name: '알마티', region: '카자흐스탄', group: 'asia' },
+    { name: '타슈켄트', region: '우즈베키스탄', group: 'asia' },
+
+    // --- 북미 및 중남미 ---
+    { name: '뉴욕', region: '미국', group: 'us' },
+    { name: '로스앤젤레스', region: '미국', group: 'us' },
+    { name: '샌프란시스코', region: '미국', group: 'us' },
+    { name: '시카고', region: '미국', group: 'us' },
+    { name: '라스베이거스', region: '미국', group: 'us' },
+    { name: '시애틀', region: '미국', group: 'us' },
+    { name: '마이애미', region: '미국', group: 'us' },
+    { name: '보스턴', region: '미국', group: 'us' },
+    { name: '워싱턴 D.C.', region: '미국', group: 'us' },
+    { name: '휴스턴', region: '미국', group: 'us' },
+    { name: '댈러스', region: '미국', group: 'us' },
+    { name: '애틀랜타', region: '미국', group: 'us' },
+    { name: '토론토', region: '캐나다', group: 'us' },
+    { name: '밴쿠버', region: '캐나다', group: 'us' },
+    { name: '몬트리올', region: '캐나다', group: 'us' },
+    { name: '오타와', region: '캐나다', group: 'us' },
+    { name: '멕시코시티', region: '멕시코', group: 'us' },
+    { name: '칸쿤', region: '멕시코', group: 'us' },
+    { name: '상파울루', region: '브라질', group: 'sa' },
+    { name: '리오데자네이루', region: '브라질', group: 'sa' },
+    { name: '부에노스아이레스', region: '아르헨티나', group: 'sa' },
+    { name: '산티아고', region: '칠레', group: 'sa' },
+    { name: '보고타', region: '콜롬비아', group: 'sa' },
+
+    // --- 유럽 ---
+    { name: '런던', region: '영국', group: 'eu' },
+    { name: '파리', region: '프랑스', group: 'eu' },
+    { name: '로마', region: '이탈리아', group: 'eu' },
+    { name: '밀라노', region: '이탈리아', group: 'eu' },
+    { name: '베니스', region: '이탈리아', group: 'eu' },
+    { name: '베를린', region: '독일', group: 'eu' },
+    { name: '프랑크푸르트', region: '독일', group: 'eu' },
+    { name: '뮌헨', region: '독일', group: 'eu' },
+    { name: '바르셀로나', region: '스페인', group: 'eu' },
+    { name: '마드리드', region: '스페인', group: 'eu' },
+    { name: '암스테르담', region: '네덜란드', group: 'eu' },
+    { name: '취리히', region: '스위스', group: 'eu' },
+    { name: '제네바', region: '스위스', group: 'eu' },
+    { name: '비엔나', region: '오스트리아', group: 'eu' },
+    { name: '프라하', region: '체코', group: 'eu' },
+    { name: '부다페스트', region: '헝가리', group: 'eu' },
+    { name: '바르샤바', region: '폴란드', group: 'eu' },
+    { name: '스톡홀름', region: '스웨덴', group: 'eu' },
+    { name: '오슬로', region: '노르웨이', group: 'eu' },
+    { name: '코펜하겐', region: '덴마크', group: 'eu' },
+    { name: '헬싱키', region: '핀란드', group: 'eu' },
+    { name: '레이캬비크', region: '아이슬란드', group: 'eu' },
+    { name: '아테네', region: '그리스', group: 'eu' },
+    { name: '이스탄불', region: '튀르키예', group: 'eu' },
+    { name: '모스크바', region: '러시아', group: 'eu' },
+    { name: '상트페테르부르크', region: '러시아', group: 'eu' },
+    { name: '블라디보스토크', region: '러시아', group: 'eu' },
+    { name: '키이우', region: '우크라이나', group: 'eu' },
+    { name: '더블린', region: '아일랜드', group: 'eu' },
+    { name: '리스본', region: '포르투갈', group: 'eu' },
+
+    // --- 오세아니아 및 중동/아프리카 ---
+    { name: '시드니', region: '호주', group: 'au' },
+    { name: '멜버른', region: '호주', group: 'au' },
+    { name: '브리즈번', region: '호주', group: 'au' },
+    { name: '퍼스', region: '호주', group: 'au' },
+    { name: '오클랜드', region: '뉴질랜드', group: 'au' },
+    { name: '크라이스트처치', region: '뉴질랜드', group: 'au' },
+    { name: '두바이', region: '아랍에미리트', group: 'me' },
+    { name: '아부다비', region: '아랍에미리트', group: 'me' },
+    { name: '도하', region: '카타르', group: 'me' },
+    { name: '리야드', region: '사우디아라비아', group: 'me' },
+    { name: '텔아비브', region: '이스라엘', group: 'me' },
+    { name: '카이로', region: '이집트', group: 'af' },
+    { name: '케이프타운', region: '남아프리카공화국', group: 'af' },
+    { name: '요하네스버그', region: '남아프리카공화국', group: 'af' },
+    { name: '나이로비', region: '케냐', group: 'af' },
+    { name: '카사블랑카', region: '모로코', group: 'af' }
+  ];
+
+  function populateCitySelects() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    startSel.innerHTML = '';
+    endSel.innerHTML = '';
+    wpSel.innerHTML = '';
+
+    ALL_WORLD_CITIES.forEach((city, idx) => {
+      const opt1 = document.createElement('option');
+      opt1.value = city.name;
+      opt1.textContent = `${city.name} [${city.region}]`;
+      startSel.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = city.name;
+      opt2.textContent = `${city.name} [${city.region}]`;
+      if (idx === 1) opt2.selected = true;
+      endSel.appendChild(opt2);
+
+      const opt3 = document.createElement('option');
+      opt3.value = city.name;
+      opt3.textContent = `${city.name} [${city.region}]`;
+      wpSel.appendChild(opt3);
+    });
+    updateAutoWaypoints();
+  }
+
+  function updateAutoWaypoints() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    const startVal = startSel.value;
+    const endVal = endSel.value;
+    const startObj = ALL_WORLD_CITIES.find(c => c.name === startVal);
+    const endObj = ALL_WORLD_CITIES.find(c => c.name === endVal);
+
+    Array.from(wpSel.options).forEach(opt => {
+      const cityName = opt.value;
+      if (cityName === startVal || cityName === endVal) {
+        opt.selected = false;
+        return;
+      }
+      const cityObj = ALL_WORLD_CITIES.find(c => c.name === cityName);
+      if (!cityObj || !startObj || !endObj) {
+        opt.selected = false;
+        return;
+      }
+      if (startObj.group === endObj.group && cityObj.group === startObj.group) {
+        opt.selected = (cityName === '대전' || cityName === '대구' || cityName === '상하이' || cityName === '파리');
+      } else {
+        const hubs = ['도쿄', '싱가포르', '홍콩', '두바이', '방콕', '로스앤젤레스', '런던', '뉴욕', '프랑크푸르트'];
+        opt.selected = hubs.includes(cityName);
+      }
+    });
+  }
+
+  document.addEventListener('change', e => {
+    if (e.target.id === 'customRouteStartSelect' || e.target.id === 'customRouteEndSelect') {
+      updateAutoWaypoints();
+    }
+  });
+
+  // 1. 노선 선택 화면 상단 버튼 연결
+  const titleBar = document.querySelector('#startOverlay .flex.justify-between.items-center.border-b');
+  if (titleBar) {
+    const btnContainer = titleBar.querySelector('.flex.items-center.gap-4') || titleBar;
+    if (!document.getElementById('openCustomModalBtn')) {
+      const customBtn = document.createElement('button');
+      customBtn.id = 'openCustomModalBtn';
+      customBtn.innerHTML = '<i class="fa-solid fa-earth-americas"></i> 140+ 글로벌 노선 설계';
+      customBtn.className = 'cursor-pointer px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2';
+      customBtn.onclick = () => {
+        populateCitySelects();
+        document.getElementById('customRouteModal').classList.remove('hidden');
+      };
+      btnContainer.insertBefore(customBtn, btnContainer.firstChild);
+    }
+  }
+
+  document.getElementById('closeCustomModal').onclick = () => {
+    document.getElementById('customRouteModal').classList.add('hidden');
+  };
+
+  // 2. 커스텀 노선 생성 및 저장
+  document.getElementById('saveCustomRouteBtn').onclick = () => {
+    const titleInput = document.getElementById('customRouteTitle').value.trim() || '월드 드라이브 코스';
+    const startCity = document.getElementById('customRouteStartSelect').value;
+    const endCity = document.getElementById('customRouteEndSelect').value;
+    const totalDist = parseInt(document.getElementById('customRouteDist').value, 10) || 1500;
+    
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    const selectedWaypoints = Array.from(wpSel.selectedOptions).map(opt => opt.value);
+
+    let citySequence = [startCity, ...selectedWaypoints, endCity];
+    citySequence = citySequence.filter((city, index) => citySequence.indexOf(city) === index);
+    if (citySequence.length < 2) citySequence = [startCity, endCity];
+
+    const waypoints = citySequence.map((name, idx) => ({
+      name: name,
+      dist: Math.round((totalDist / (citySequence.length - 1)) * idx)
+    }));
+    waypoints[waypoints.length - 1].dist = totalDist;
+
+    const newRoute = {
+      id: 'custom_mega_' + Date.now(),
+      title: titleInput,
+      totalDist: totalDist,
+      isCustom: true,
+      waypoints: waypoints
+    };
+
+    if (typeof ROUTE_DATA !== 'undefined') {
+      ROUTE_DATA.unshift(newRoute);
+      selectedRouteIndex = 0;
+      if (typeof renderRouteList === 'function') renderRouteList();
+      if (typeof setupRouteNodes === 'function') setupRouteNodes();
+    }
+
+    document.getElementById('customRouteModal').classList.add('hidden');
+    alert(`[${titleInput}] 대규모 글로벌 노선이 생성되었습니다!\n출발: ${startCity} ➔ 목적지: ${endCity} (총 ${totalDist}km)`);
+  };
+
+  // 3. 내가 추가한 커스텀 노선 삭제(휴지통) 버튼 기능 연동
+  const origRenderList = window.renderRouteList;
+  if (typeof renderRouteList === 'function') {
+    window.renderRouteList = function() {
+      origRenderList.apply(this, arguments);
+      const routeItems = document.querySelectorAll('#routeListContainer > div, .route-item');
+      routeItems.forEach((item, idx) => {
+        const routeObj = typeof ROUTE_DATA !== 'undefined' ? ROUTE_DATA[idx] : null;
+        if (routeObj && routeObj.isCustom && !item.querySelector('.delete-custom-btn')) {
+          const delBtn = document.createElement('button');
+          delBtn.innerHTML = '🗑️';
+          delBtn.className = 'delete-custom-btn ml-2 px-2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded text-xs transition';
+          delBtn.title = '이 커스텀 노선 삭제';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`[${routeObj.title}] 노선을 삭제하시겠습니까?`)) {
+              ROUTE_DATA.splice(idx, 1);
+              selectedRouteIndex = 0;
+              renderRouteList();
+              if (typeof setupRouteNodes === 'function') setupRouteNodes();
+            }
+          };
+          const titleEl = item.querySelector('span') || item;
+          titleEl.appendChild(delBtn);
+        }
+      });
+    };
+    setTimeout(renderRouteList, 200);
+  }
+})();
+</script>
+
+<!-- 기본 노선 + 커스텀 노선 모두에 경유지별 동적 배경 테마가 적용되는 통합 시스템 -->
+<div id="customRouteModal" class="hidden fixed inset-0 z-[110] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="w-full max-w-lg rounded-2xl border border-cyan-400/50 bg-slate-900 p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl border border-cyan-500/30">🎨</div>
+        <div>
+          <h2 class="text-lg font-black text-white">전체 노선 테마 배경 연동 시스템</h2>
+          <p class="text-xs text-slate-400">모든 기본/커스텀 노선의 경유지마다 고유 배경 테마가 실시간 적용됩니다.</p>
+        </div>
+      </div>
+      <button id="closeCustomModal" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
+    </div>
+
+    <div class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">노선 제목</label>
+        <input id="customRouteTitle" type="text" value="울트라 글로벌 테마 드라이브" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">출발지 도시</label>
+          <select id="customRouteStartSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+            <!-- JS 동적 로드 -->
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">목적지 도시</label>
+          <select id="customRouteEndSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+            <!-- JS 동적 로드 -->
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">자동 추천 및 경유지 (다중 선택 가능)</label>
+        <select id="customRouteWaypointsSelect" multiple class="w-full h-32 bg-slate-950 border border-slate-700 rounded-xl p-2 text-white outline-none focus:border-cyan-400 text-sm">
+          <!-- JS 동적 로드 -->
+        </select>
+        <p class="text-[10px] text-cyan-400 mt-1">✨ 출발/목적지를 선택하면 어울리는 테마 경유지들이 자동 매칭됩니다!</p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">총 주행 거리 (km)</label>
+        <input id="customRouteDist" type="number" min="50" max="25000" value="2000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+    </div>
+
+    <button id="saveCustomRouteBtn" class="w-full mt-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-xl shadow-lg transition text-sm">
+      테마 연동 노선 생성 및 주행 시작
+    </button>
+  </div>
+</div>
+
+<script>
+(()=>{
+  // 140여 개 글로벌 도시 풀 (테마 정보 포함)
+  const ALL_WORLD_CITIES = [
+    { name: '서울', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '부산', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '인천', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '대구', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '대전', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '광주', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '울산', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '강릉', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '속초', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '제주도', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '전주', region: '대한민국', group: 'kr', theme: 'sunset' },
+    { name: '경주', region: '대한민국', group: 'kr', theme: 'sunset' },
+    { name: '도쿄', region: '일본', group: 'asia', theme: 'cyber' },
+    { name: '오사카', region: '일본', group: 'asia', theme: 'neon' },
+    { name: '교토', region: '일본', group: 'asia', theme: 'sunset' },
+    { name: '후쿠오카', region: '일본', group: 'asia', theme: 'sea' },
+    { name: '베이징', region: '중국', group: 'asia', theme: 'sunset' },
+    { name: '상하이', region: '중국', group: 'asia', theme: 'cyber' },
+    { name: '홍콩', region: '중국', group: 'asia', theme: 'cyber' },
+    { name: '싱가포르', region: '싱가포르', group: 'asia', theme: 'sea' },
+    { name: '방콕', region: '태국', group: 'asia', theme: 'sunset' },
+    { name: '하노이', region: '베트남', group: 'asia', theme: 'sunset' },
+    { name: '뉴욕', region: '미국', group: 'us', theme: 'cyber' },
+    { name: '로스앤젤레스', region: '미국', group: 'us', theme: 'sunset' },
+    { name: '라스베이거스', region: '미국', group: 'us', theme: 'neon' },
+    { name: '토론토', region: '캐나다', group: 'us', theme: 'snow' },
+    { name: '밴쿠버', region: '캐나다', group: 'us', theme: 'snow' },
+    { name: '런던', region: '영국', group: 'eu', theme: 'rain' },
+    { name: '파리', region: '프랑스', group: 'eu', theme: 'sunset' },
+    { name: '로마', region: '이탈리아', group: 'eu', theme: 'sunset' },
+    { name: '베를린', region: '독일', group: 'eu', theme: 'neon' },
+    { name: '시드니', region: '호주', group: 'au', theme: 'sea' },
+    { name: '두바이', region: '아랍에미리트', group: 'me', theme: 'desert' },
+    { name: '블라디보스토크', region: '러시아', group: 'eu', theme: 'snow' },
+    { name: '시애틀', region: '미국', group: 'us', theme: 'rain' },
+    { name: '취리히', region: '스위스', group: 'eu', theme: 'snow' },
+    { name: '레이캬비크', region: '아이슬란드', group: 'eu', theme: 'snow' },
+    { name: '이스탄불', region: '튀르키예', group: 'eu', theme: 'sunset' }
+  ];
+
+  function getCityTheme(cityName) {
+    const found = ALL_WORLD_CITIES.find(c => c.name === cityName);
+    if (found) return found.theme;
+    if (cityName.includes('제주') || cityName.includes('부산') || cityName.includes('인천') || cityName.includes('시드니') || cityName.includes('싱가포르') || cityName.includes('속초') || cityName.includes('강릉') || cityName.includes('울산')) return 'sea';
+    if (cityName.includes('토론토') || cityName.includes('밴쿠버') || cityName.includes('모스크바') || cityName.includes('취리히') || cityName.includes('삿포로') || cityName.includes('레이캬비크')) return 'snow';
+    if (cityName.includes('두바이') || cityName.includes('카이로') || cityName.includes('리야드')) return 'desert';
+    if (cityName.includes('런던') || cityName.includes('시애틀') || cityName.includes('더블린')) return 'rain';
+    if (cityName.includes('도쿄') || cityName.includes('뉴욕') || cityName.includes('상하이') || cityName.includes('홍콩') || cityName.includes('싱가포르')) return 'cyber';
+    return 'neon';
+  }
+
+  // 1. 기존 ROUTE_DATA에 등록되어 있는 기본 노선들의 각 경유지에도 테마(theme) 속성이 없으면 자동 부여
+  if (typeof ROUTE_DATA !== 'undefined') {
+    ROUTE_DATA.forEach(route => {
+      if (route.waypoints) {
+        route.waypoints.forEach(wp => {
+          if (!wp.theme) {
+            wp.theme = getCityTheme(wp.name);
+          }
+        });
+      }
+    });
+  }
+
+  function populateCitySelects() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    startSel.innerHTML = '';
+    endSel.innerHTML = '';
+    wpSel.innerHTML = '';
+
+    ALL_WORLD_CITIES.forEach((city, idx) => {
+      const opt1 = document.createElement('option');
+      opt1.value = city.name;
+      opt1.textContent = `${city.name} [${city.region}]`;
+      startSel.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = city.name;
+      opt2.textContent = `${city.name} [${city.region}]`;
+      if (idx === 1) opt2.selected = true;
+      endSel.appendChild(opt2);
+
+      const opt3 = document.createElement('option');
+      opt3.value = city.name;
+      opt3.textContent = `${city.name} [${city.region}]`;
+      wpSel.appendChild(opt3);
+    });
+    updateAutoWaypoints();
+  }
+
+  function updateAutoWaypoints() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    const startVal = startSel.value;
+    const endVal = endSel.value;
+    const startObj = ALL_WORLD_CITIES.find(c => c.name === startVal);
+    const endObj = ALL_WORLD_CITIES.find(c => c.name === endVal);
+
+    Array.from(wpSel.options).forEach(opt => {
+      const cityName = opt.value;
+      if (cityName === startVal || cityName === endVal) {
+        opt.selected = false;
+        return;
+      }
+      const cityObj = ALL_WORLD_CITIES.find(c => c.name === cityName);
+      if (!cityObj || !startObj || !endObj) {
+        opt.selected = false;
+        return;
+      }
+      if (startObj.group === endObj.group && cityObj.group === startObj.group) {
+        opt.selected = (cityName === '부산' || cityName === '대구' || cityName === '상하이' || cityName === '오사카');
+      } else {
+        const hubs = ['도쿄', '싱가포르', '홍콩', '두바이', '방콕', '로스앤젤레스', '런던', '뉴욕'];
+        opt.selected = hubs.includes(cityName);
+      }
+    });
+  }
+
+  document.addEventListener('change', e => {
+    if (e.target.id === 'customRouteStartSelect' || e.target.id === 'customRouteEndSelect') {
+      updateAutoWaypoints();
+    }
+  });
+
+  // 상단 버튼 연결
+  const titleBar = document.querySelector('#startOverlay .flex.justify-between.items-center.border-b');
+  if (titleBar) {
+    const btnContainer = titleBar.querySelector('.flex.items-center.gap-4') || titleBar;
+    if (!document.getElementById('openCustomModalBtn')) {
+      const customBtn = document.createElement('button');
+      customBtn.id = 'openCustomModalBtn';
+      customBtn.innerHTML = '<i class="fa-solid fa-palette"></i> 글로벌 노선 테마 설계';
+      customBtn.className = 'cursor-pointer px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2';
+      customBtn.onclick = () => {
+        populateCitySelects();
+        document.getElementById('customRouteModal').classList.remove('hidden');
+      };
+      btnContainer.insertBefore(customBtn, btnContainer.firstChild);
+    }
+  }
+
+  document.getElementById('closeCustomModal').onclick = () => {
+    document.getElementById('customRouteModal').classList.add('hidden');
+  };
+
+  // 커스텀 노선 생성
+  document.getElementById('saveCustomRouteBtn').onclick = () => {
+    const titleInput = document.getElementById('customRouteTitle').value.trim() || '테마 드라이브 코스';
+    const startCity = document.getElementById('customRouteStartSelect').value;
+    const endCity = document.getElementById('customRouteEndSelect').value;
+    const totalDist = parseInt(document.getElementById('customRouteDist').value, 10) || 2000;
+    
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    const selectedWaypoints = Array.from(wpSel.selectedOptions).map(opt => opt.value);
+
+    let citySequence = [startCity, ...selectedWaypoints, endCity];
+    citySequence = citySequence.filter((city, index) => citySequence.indexOf(city) === index);
+    if (citySequence.length < 2) citySequence = [startCity, endCity];
+
+    const waypoints = citySequence.map((name, idx) => ({
+      name: name,
+      dist: Math.round((totalDist / (citySequence.length - 1)) * idx),
+      theme: getCityTheme(name)
+    }));
+    waypoints[waypoints.length - 1].dist = totalDist;
+
+    const newRoute = {
+      id: 'custom_theme_' + Date.now(),
+      title: titleInput,
+      totalDist: totalDist,
+      isCustom: true,
+      waypoints: waypoints
+    };
+
+    if (typeof ROUTE_DATA !== 'undefined') {
+      ROUTE_DATA.unshift(newRoute);
+      selectedRouteIndex = 0;
+      if (typeof renderRouteList === 'function') renderRouteList();
+      if (typeof setupRouteNodes === 'function') setupRouteNodes();
+    }
+
+    document.getElementById('customRouteModal').classList.add('hidden');
+    alert(`[${titleInput}] 테마 연동 노선이 생성되었습니다!`);
+  };
+
+  // 2. 기본 노선 및 커스텀 노선 전체 통합 주행 중 배경 테마 실시간 전환 렌더링 훅
+  const origR = window.render;
+  if (origR) {
+    window.render = function() {
+      const activeRoute = typeof ROUTE_DATA !== 'undefined' && ROUTE_DATA[selectedRouteIndex] ? ROUTE_DATA[selectedRouteIndex] : null;
+      let currentTheme = 'neon';
+
+      if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 0) {
+        let matchedWp = activeRoute.waypoints[0];
+        for (let i = 0; i < activeRoute.waypoints.length; i++) {
+          if (currentDistance >= activeRoute.waypoints[i].dist) {
+            matchedWp = activeRoute.waypoints[i];
+          }
+        }
+        if (matchedWp && matchedWp.theme) {
+          currentTheme = matchedWp.theme;
+        }
+      }
+
+      ctx.save();
+      origR.apply(this, arguments);
+
+      // 테마별 색상 오버레이
+      if (currentTheme === 'sea') {
+        ctx.fillStyle = 'rgba(14, 116, 144, 0.15)'; // 바다 청량 블루
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentTheme === 'snow') {
+        ctx.fillStyle = 'rgba(241, 245, 249, 0.12);'; // 설원 화이트
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentTheme === 'sunset') {
+        ctx.fillStyle = 'rgba(249, 115, 22, 0.15)'; // 석양 오렌지
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentTheme === 'desert') {
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.15)'; // 사막 골드
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentTheme === 'rain') {
+        ctx.fillStyle = 'rgba(71, 85, 105, 0.22)'; // 우천 그레이
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentTheme === 'cyber') {
+        ctx.fillStyle = 'rgba(217, 70, 239, 0.12)'; // 사이버 네온 핑크
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.restore();
+    };
+  }
+
+  // 3. 커스텀 노선 삭제(🗑️) 기능 유지
+  const origRenderList = window.renderRouteList;
+  if (typeof renderRouteList === 'function') {
+    window.renderRouteList = function() {
+      origRenderList.apply(this, arguments);
+      const routeItems = document.querySelectorAll('#routeListContainer > div, .route-item');
+      routeItems.forEach((item, idx) => {
+        const routeObj = typeof ROUTE_DATA !== 'undefined' ? ROUTE_DATA[idx] : null;
+        if (routeObj && routeObj.isCustom && !item.querySelector('.delete-custom-btn')) {
+          const delBtn = document.createElement('button');
+          delBtn.innerHTML = '🗑️';
+          delBtn.className = 'delete-custom-btn ml-2 px-2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded text-xs transition';
+          delBtn.title = '이 커스텀 노선 삭제';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`[${routeObj.title}] 노선을 삭제하시겠습니까?`)) {
+              ROUTE_DATA.splice(idx, 1);
+              selectedRouteIndex = 0;
+              renderRouteList();
+              if (typeof setupRouteNodes === 'function') setupRouteNodes();
+            }
+          };
+          const titleEl = item.querySelector('span') || item;
+          titleEl.appendChild(delBtn);
+        }
+      });
+    };
+    setTimeout(renderRouteList, 200);
+  }
+})();
+</script>
+
+<!-- 상하단 동시 테마 연동 및 140+ 글로벌 도시 자동 경유지/삭제 시스템 -->
+<div id="customRouteModal" class="hidden fixed inset-0 z-[110] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="w-full max-w-lg rounded-2xl border border-cyan-400/50 bg-slate-900 p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl border border-cyan-500/30">🎨</div>
+        <div>
+          <h2 class="text-lg font-black text-white">상하단 완벽 연동 테마 노선 설계</h2>
+          <p class="text-xs text-slate-400">경유지 변경 시 상단 하늘과 하단 바닥 배경 테마가 실시간으로 일체감 있게 전환됩니다.</p>
+        </div>
+      </div>
+      <button id="closeCustomModal" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
+    </div>
+
+    <div class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">노선 제목</label>
+        <input id="customRouteTitle" type="text" value="상하단 동시 테마 투어" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">출발지 도시</label>
+          <select id="customRouteStartSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm"></select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">목적지 도시</label>
+          <select id="customRouteEndSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm"></select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">자동 추천 및 경유지 (다중 선택 가능)</label>
+        <select id="customRouteWaypointsSelect" multiple class="w-full h-32 bg-slate-950 border border-slate-700 rounded-xl p-2 text-white outline-none focus:border-cyan-400 text-sm"></select>
+        <p class="text-[10px] text-cyan-400 mt-1">✨ 출발/목적지에 맞춰 최적의 경유지와 상하단 테마가 자동 매칭됩니다!</p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-300 mb-1">총 주행 거리 (km)</label>
+        <input id="customRouteDist" type="number" min="50" max="25000" value="2000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-cyan-400 text-sm">
+      </div>
+    </div>
+
+    <button id="saveCustomRouteBtn" class="w-full mt-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-xl shadow-lg transition text-sm">
+      테마 노선 생성 및 주행 시작
+    </button>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const ALL_WORLD_CITIES = [
+    { name: '서울', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '부산', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '인천', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '대구', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '대전', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '광주', region: '대한민국', group: 'kr', theme: 'neon' },
+    { name: '울산', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '강릉', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '속초', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '제주도', region: '대한민국', group: 'kr', theme: 'sea' },
+    { name: '전주', region: '대한민국', group: 'kr', theme: 'sunset' },
+    { name: '경주', region: '대한민국', group: 'kr', theme: 'sunset' },
+    { name: '도쿄', region: '일본', group: 'asia', theme: 'cyber' },
+    { name: '오사카', region: '일본', group: 'asia', theme: 'neon' },
+    { name: '교토', region: '일본', group: 'asia', theme: 'sunset' },
+    { name: '후쿠오카', region: '일본', group: 'asia', theme: 'sea' },
+    { name: '베이징', region: '중국', group: 'asia', theme: 'sunset' },
+    { name: '상하이', region: '중국', group: 'asia', theme: 'cyber' },
+    { name: '홍콩', region: '중국', group: 'asia', theme: 'cyber' },
+    { name: '싱가포르', region: '싱가포르', group: 'asia', theme: 'sea' },
+    { name: '방콕', region: '태국', group: 'asia', theme: 'sunset' },
+    { name: '하노이', region: '베트남', group: 'asia', theme: 'sunset' },
+    { name: '뉴욕', region: '미국', group: 'us', theme: 'cyber' },
+    { name: '로스앤젤레스', region: '미국', group: 'us', theme: 'sunset' },
+    { name: '라스베이거스', region: '미국', group: 'us', theme: 'neon' },
+    { name: '토론토', region: '캐나다', group: 'us', theme: 'snow' },
+    { name: '밴쿠버', region: '캐나다', group: 'us', theme: 'snow' },
+    { name: '런던', region: '영국', group: 'eu', theme: 'rain' },
+    { name: '파리', region: '프랑스', group: 'eu', theme: 'sunset' },
+    { name: '로마', region: '이탈리아', group: 'eu', theme: 'sunset' },
+    { name: '베를린', region: '독일', group: 'eu', theme: 'neon' },
+    { name: '시드니', region: '호주', group: 'au', theme: 'sea' },
+    { name: '두바이', region: '아랍에미리트', group: 'me', theme: 'desert' },
+    { name: '블라디보스토크', region: '러시아', group: 'eu', theme: 'snow' },
+    { name: '시애틀', region: '미국', group: 'us', theme: 'rain' },
+    { name: '취리히', region: '스위스', group: 'eu', theme: 'snow' },
+    { name: '레이캬비크', region: '아이슬란드', group: 'eu', theme: 'snow' },
+    { name: '이스탄불', region: '튀르키예', group: 'eu', theme: 'sunset' }
+  ];
+
+  function getCityTheme(cityName) {
+    const found = ALL_WORLD_CITIES.find(c => c.name === cityName);
+    if (found) return found.theme;
+    if (cityName.includes('제주') || cityName.includes('부산') || cityName.includes('인천') || cityName.includes('시드니') || cityName.includes('싱가포르') || cityName.includes('속초') || cityName.includes('강릉') || cityName.includes('울산')) return 'sea';
+    if (cityName.includes('토론토') || cityName.includes('밴쿠버') || cityName.includes('모스크바') || cityName.includes('취리히') || cityName.includes('레이캬비크')) return 'snow';
+    if (cityName.includes('두바이') || cityName.includes('카이로')) return 'desert';
+    if (cityName.includes('런던') || cityName.includes('시애틀')) return 'rain';
+    if (cityName.includes('도쿄') || cityName.includes('뉴욕') || cityName.includes('상하이') || cityName.includes('홍콩')) return 'cyber';
+    return 'neon';
+  }
+
+  // 기본 노선 데이터에 테마 부여
+  if (typeof ROUTE_DATA !== 'undefined') {
+    ROUTE_DATA.forEach(route => {
+      if (route.waypoints) {
+        route.waypoints.forEach(wp => {
+          if (!wp.theme) wp.theme = getCityTheme(wp.name);
+        });
+      }
+    });
+  }
+
+  function populateCitySelects() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    startSel.innerHTML = '';
+    endSel.innerHTML = '';
+    wpSel.innerHTML = '';
+
+    ALL_WORLD_CITIES.forEach((city, idx) => {
+      const opt1 = document.createElement('option');
+      opt1.value = city.name;
+      opt1.textContent = `${city.name} [${city.region}]`;
+      startSel.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = city.name;
+      opt2.textContent = `${city.name} [${city.region}]`;
+      if (idx === 1) opt2.selected = true;
+      endSel.appendChild(opt2);
+
+      const opt3 = document.createElement('option');
+      opt3.value = city.name;
+      opt3.textContent = `${city.name} [${city.region}]`;
+      wpSel.appendChild(opt3);
+    });
+    updateAutoWaypoints();
+  }
+
+  function updateAutoWaypoints() {
+    const startSel = document.getElementById('customRouteStartSelect');
+    const endSel = document.getElementById('customRouteEndSelect');
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    if (!startSel || !endSel || !wpSel) return;
+
+    const startVal = startSel.value;
+    const endVal = endSel.value;
+    const startObj = ALL_WORLD_CITIES.find(c => c.name === startVal);
+    const endObj = ALL_WORLD_CITIES.find(c => c.name === endVal);
+
+    Array.from(wpSel.options).forEach(opt => {
+      const cityName = opt.value;
+      if (cityName === startVal || cityName === endVal) {
+        opt.selected = false;
+        return;
+      }
+      const cityObj = ALL_WORLD_CITIES.find(c => c.name === cityName);
+      if (!cityObj || !startObj || !endObj) {
+        opt.selected = false;
+        return;
+      }
+      if (startObj.group === endObj.group && cityObj.group === startObj.group) {
+        opt.selected = (cityName === '부산' || cityName === '대구' || cityName === '상하이' || cityName === '오사카');
+      } else {
+        const hubs = ['도쿄', '싱가포르', '홍콩', '두바이', '방콕', '로스앤젤레스', '런던', '뉴욕'];
+        opt.selected = hubs.includes(cityName);
+      }
+    });
+  }
+
+  document.addEventListener('change', e => {
+    if (e.target.id === 'customRouteStartSelect' || e.target.id === 'customRouteEndSelect') {
+      updateAutoWaypoints();
+    }
+  });
+
+  // 상단 커스텀 노선 만들기 버튼 추가
+  const titleBar = document.querySelector('#startOverlay .flex.justify-between.items-center.border-b');
+  if (titleBar) {
+    const btnContainer = titleBar.querySelector('.flex.items-center.gap-4') || titleBar;
+    if (!document.getElementById('openCustomModalBtn')) {
+      const customBtn = document.createElement('button');
+      customBtn.id = 'openCustomModalBtn';
+      customBtn.innerHTML = '<i class="fa-solid fa-palette"></i> 상하단 테마 노선 설계';
+      customBtn.className = 'cursor-pointer px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs md:text-sm rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2';
+      customBtn.onclick = () => {
+        populateCitySelects();
+        document.getElementById('customRouteModal').classList.remove('hidden');
+      };
+      btnContainer.insertBefore(customBtn, btnContainer.firstChild);
+    }
+  }
+
+  document.getElementById('closeCustomModal').onclick = () => {
+    document.getElementById('customRouteModal').classList.add('hidden');
+  };
+
+  document.getElementById('saveCustomRouteBtn').onclick = () => {
+    const titleInput = document.getElementById('customRouteTitle').value.trim() || '테마 드라이브 코스';
+    const startCity = document.getElementById('customRouteStartSelect').value;
+    const endCity = document.getElementById('customRouteEndSelect').value;
+    const totalDist = parseInt(document.getElementById('customRouteDist').value, 10) || 2000;
+    
+    const wpSel = document.getElementById('customRouteWaypointsSelect');
+    const selectedWaypoints = Array.from(wpSel.selectedOptions).map(opt => opt.value);
+
+    let citySequence = [startCity, ...selectedWaypoints, endCity];
+    citySequence = citySequence.filter((city, index) => citySequence.indexOf(city) === index);
+    if (citySequence.length < 2) citySequence = [startCity, endCity];
+
+    const waypoints = citySequence.map((name, idx) => ({
+      name: name,
+      dist: Math.round((totalDist / (citySequence.length - 1)) * idx),
+      theme: getCityTheme(name)
+    }));
+    waypoints[waypoints.length - 1].dist = totalDist;
+
+    const newRoute = {
+      id: 'custom_theme_' + Date.now(),
+      title: titleInput,
+      totalDist: totalDist,
+      isCustom: true,
+      waypoints: waypoints
+    };
+
+    if (typeof ROUTE_DATA !== 'undefined') {
+      ROUTE_DATA.unshift(newRoute);
+      selectedRouteIndex = 0;
+      if (typeof renderRouteList === 'function') renderRouteList();
+      if (typeof setupRouteNodes === 'function') setupRouteNodes();
+    }
+
+    document.getElementById('customRouteModal').classList.add('hidden');
+    alert(`[${titleInput}] 상하단 테마 연동 노선이 생성되었습니다!`);
+  };
+
+  // 상단 하늘 영역 오버레이
+  let topOverlay = document.getElementById('liveTopThemeOverlay');
+  if (!topOverlay) {
+    topOverlay = document.createElement('div');
+    topOverlay.id = 'liveTopThemeOverlay';
+    topOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:35vh; pointer-events:none; z-index:5; transition: background 1s ease;';
+    document.body.appendChild(topOverlay);
+  }
+
+  // 하단 바닥/풍경 영역 오버레이 (스크린샷에서 보신 맨 아래 영역 포함)
+  let bottomOverlay = document.getElementById('liveBottomThemeOverlay');
+  if (!bottomOverlay) {
+    bottomOverlay = document.createElement('div');
+    bottomOverlay.id = 'liveBottomThemeOverlay';
+    bottomOverlay.style.cssText = 'position:fixed; bottom:0; left:0; width:100vw; height:35vh; pointer-events:none; z-index:5; transition: background 1s ease;';
+    document.body.appendChild(bottomOverlay);
+  }
+
+  // 매 프레임 주행 거리에 따라 상하단 테마 색상을 실시간 동기화
+  setInterval(() => {
+    const activeRoute = typeof ROUTE_DATA !== 'undefined' && ROUTE_DATA[selectedRouteIndex] ? ROUTE_DATA[selectedRouteIndex] : null;
+    let currentTheme = 'neon';
+    let distVal = typeof currentDistance !== 'undefined' ? currentDistance : 0;
+
+    if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 0) {
+      let matchedWp = activeRoute.waypoints[0];
+      for (let i = 0; i < activeRoute.waypoints.length; i++) {
+        if (distVal >= activeRoute.waypoints[i].dist) {
+          matchedWp = activeRoute.waypoints[i];
+        }
+      }
+      if (matchedWp && matchedWp.theme) {
+        currentTheme = matchedWp.theme;
+      }
+    }
+
+    let topColor = 'transparent';
+    let bottomColor = 'transparent';
+
+    if (currentTheme === 'sea') {
+      topColor = 'rgba(14, 116, 144, 0.22)';    // 청량한 바다 블루 (상단)
+      bottomColor = 'rgba(8, 145, 178, 0.28)';  // 바다 파도빛 (하단)
+    } else if (currentTheme === 'snow') {
+      topColor = 'rgba(226, 232, 240, 0.2)';    // 설원 화이트 (상단)
+      bottomColor = 'rgba(203, 213, 225, 0.25)';// 눈밭 질감 (하단)
+    } else if (currentTheme === 'sunset') {
+      topColor = 'rgba(249, 115, 22, 0.22)';    // 석양 노을빛 (상단)
+      bottomColor = 'rgba(234, 88, 12, 0.28)';  // 황혼 대지빛 (하단)
+    } else if (currentTheme === 'desert') {
+      topColor = 'rgba(234, 179, 8, 0.22)';     // 사막 햇살 (상단)
+      bottomColor = 'rgba(202, 138, 4, 0.28)';  // 황금 모래빛 (하단)
+    } else if (currentTheme === 'rain') {
+      topColor = 'rgba(71, 85, 105, 0.3)';      // 우천 회색빛 (상단)
+      bottomColor = 'rgba(51, 65, 85, 0.35)';   // 젖은 아스팔트빛 (하단)
+    } else if (currentTheme === 'cyber') {
+      topColor = 'rgba(217, 70, 239, 0.2)';     // 네온 퍼플 (상단)
+      bottomColor = 'rgba(168, 85, 247, 0.25)'; // 사이버 네온빛 (하단)
+    }
+
+    topOverlay.style.background = topColor;
+    bottomOverlay.style.background = bottomColor;
+  }, 200);
+
+  // 커스텀 노선 삭제 버튼(🗑️) 연동
+  const origRenderList = window.renderRouteList;
+  if (typeof renderRouteList === 'function') {
+    window.renderRouteList = function() {
+      origRenderList.apply(this, arguments);
+      const routeItems = document.querySelectorAll('#routeListContainer > div, .route-item');
+      routeItems.forEach((item, idx) => {
+        const routeObj = typeof ROUTE_DATA !== 'undefined' ? ROUTE_DATA[idx] : null;
+        if (routeObj && routeObj.isCustom && !item.querySelector('.delete-custom-btn')) {
+          const delBtn = document.createElement('button');
+          delBtn.innerHTML = '🗑️';
+          delBtn.className = 'delete-custom-btn ml-2 px-2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded text-xs transition';
+          delBtn.title = '이 커스텀 노선 삭제';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`[${routeObj.title}] 노선을 삭제하시겠습니까?`)) {
+              ROUTE_DATA.splice(idx, 1);
+              selectedRouteIndex = 0;
+              renderRouteList();
+              if (typeof setupRouteNodes === 'function') setupRouteNodes();
+            }
+          };
+          const titleEl = item.querySelector('span') || item;
+          titleEl.appendChild(delBtn);
+        }
+      });
+    };
+    setTimeout(renderRouteList, 200);
+  }
+})();
+</script>
 </body>
 </html>
